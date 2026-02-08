@@ -111,12 +111,12 @@
 
   /* ── Shelf Grid ── */
   #shelf-view {
-    max-width: 1100px;
+    max-width: 1060px;
     margin: 0 auto;
     padding: 40px 40px 120px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 24px 32px;
+    gap: 40px 36px;
     transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
@@ -136,143 +136,192 @@
     opacity: 0;
     transform: translateY(30px);
     animation: fadeUp 0.7s ease forwards;
+    perspective: 800px;
   }
 
-  .char-card:nth-child(1) { animation-delay: 0.2s; }
-  .char-card:nth-child(2) { animation-delay: 0.3s; }
-  .char-card:nth-child(3) { animation-delay: 0.4s; }
-  .char-card:nth-child(4) { animation-delay: 0.5s; }
-  .char-card:nth-child(5) { animation-delay: 0.6s; }
-  .char-card:nth-child(6) { animation-delay: 0.7s; }
+  .char-card:nth-child(1) { animation-delay: 0.15s; }
+  .char-card:nth-child(2) { animation-delay: 0.25s; }
+  .char-card:nth-child(3) { animation-delay: 0.35s; }
+  .char-card:nth-child(4) { animation-delay: 0.45s; }
+  .char-card:nth-child(5) { animation-delay: 0.55s; }
+  .char-card:nth-child(6) { animation-delay: 0.65s; }
 
-  .card-stage {
+  .card-tilt {
+    width: 100%;
+    transition: transform 0.15s ease-out;
+    transform-style: preserve-3d;
+    will-change: transform;
+  }
+
+  .card-face {
     position: relative;
     width: 100%;
-    aspect-ratio: 3 / 4;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
+    aspect-ratio: 5 / 7;
     border-radius: 16px;
     overflow: hidden;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.03) 100%);
-    border: 1px solid var(--border);
-    transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.4s ease, box-shadow 0.4s ease;
   }
 
-  .card-stage::before {
-    content: '';
+  .char-card:hover .card-face {
+    border-color: rgba(212, 165, 116, 0.25);
+    box-shadow:
+      0 25px 50px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(212, 165, 116, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+
+  /* Inner card frame — playing card border */
+  .card-frame {
     position: absolute;
-    top: 15%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 50%;
-    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.06) 0%, transparent 70%);
+    inset: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 10px;
     pointer-events: none;
-    transition: opacity 0.45s ease;
+    transition: border-color 0.4s ease;
   }
 
-  /* Shelf / pedestal line */
-  .card-stage::after {
-    content: '';
+  .char-card:hover .card-frame {
+    border-color: rgba(212, 165, 116, 0.12);
+  }
+
+  /* Corner accents */
+  .card-corner {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 5%, rgba(212, 165, 116, 0.2) 30%, rgba(212, 165, 116, 0.35) 50%, rgba(212, 165, 116, 0.2) 70%, transparent 95%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    pointer-events: none;
+    z-index: 2;
   }
 
-  .char-card:hover .card-stage {
-    border-color: var(--border-hover);
-    background: linear-gradient(180deg, rgba(255,255,255,0.015) 0%, rgba(255,255,255,0.05) 100%);
-    transform: translateY(-4px);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3), 0 1px 0 rgba(212, 165, 116, 0.15);
+  .card-corner.top { top: 18px; left: 20px; }
+  .card-corner.bottom { bottom: 18px; right: 20px; transform: rotate(180deg); }
+
+  .card-corner .corner-role {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1;
+    transition: color 0.4s ease;
   }
 
-  .char-card:hover .card-stage::before {
-    opacity: 2;
+  .char-card:hover .card-corner .corner-role {
+    color: var(--accent);
   }
 
+  .card-corner .corner-pip {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.5;
+    transition: color 0.4s ease, opacity 0.4s ease;
+  }
+
+  .char-card:hover .card-corner .corner-pip {
+    color: var(--accent);
+    opacity: 0.6;
+  }
+
+  /* Character image — centered */
   .char-img-wrap {
     position: relative;
-    width: 70%;
-    height: 85%;
+    z-index: 1;
+    width: 62%;
+    height: 62%;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
-    transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .char-card:hover .char-img-wrap {
-    transform: translateY(-6px);
+    transform: scale(1.04);
   }
 
   .char-img-wrap img {
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.4));
-    transition: filter 0.45s ease;
+    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5));
+    transition: filter 0.4s ease;
   }
 
   .char-card:hover .char-img-wrap img {
-    filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 40px rgba(212, 165, 116, 0.08));
   }
 
-  /* Reflection */
-  .char-reflection {
+  /* Spotlight glow behind character */
+  .card-glow {
     position: absolute;
-    bottom: -2px;
+    top: 50%;
     left: 50%;
-    transform: translateX(-50%) scaleY(-1);
+    transform: translate(-50%, -50%);
     width: 70%;
-    height: 30%;
-    overflow: hidden;
-    opacity: 0.07;
-    mask-image: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%);
-    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%);
+    height: 70%;
+    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.04) 0%, transparent 70%);
     pointer-events: none;
+    transition: opacity 0.4s ease;
+    opacity: 0;
   }
 
-  .char-reflection img {
-    width: 100%;
-    height: auto;
-    object-fit: contain;
-    object-position: bottom;
+  .char-card:hover .card-glow {
+    opacity: 1;
   }
 
-  /* Card label */
-  .card-label {
+  /* Holographic shine overlay */
+  .card-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    pointer-events: none;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    background: radial-gradient(
+      circle at var(--shine-x, 50%) var(--shine-y, 50%),
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(212, 165, 116, 0.06) 25%,
+      transparent 60%
+    );
+    mix-blend-mode: screen;
+  }
+
+  .char-card:hover .card-shine {
+    opacity: 1;
+  }
+
+  /* Card bottom name bar */
+  .card-name-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px 20px 22px;
     text-align: center;
-    padding: 18px 0 0;
+    z-index: 2;
+    background: linear-gradient(to top, rgba(14, 14, 13, 0.95) 0%, rgba(14, 14, 13, 0.6) 60%, transparent 100%);
   }
 
-  .card-label .char-role {
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-    margin-bottom: 4px;
-    transition: color 0.3s ease;
-  }
-
-  .char-card:hover .card-label .char-role {
-    color: var(--accent-dim);
-  }
-
-  .card-label .char-name {
+  .card-name-bar .char-name {
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
     font-weight: 400;
-    font-size: 20px;
+    font-size: 18px;
     letter-spacing: -0.01em;
     color: var(--text);
     transition: color 0.3s ease;
   }
 
-  .char-card:hover .card-label .char-name {
+  .char-card:hover .card-name-bar .char-name {
     color: var(--accent);
   }
 
@@ -302,24 +351,15 @@
     text-transform: uppercase;
     color: var(--text-dim);
     text-decoration: none;
-    padding: 10px 20px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 48px;
     border: none;
     background: none;
     padding: 10px 0;
-    backdrop-filter: none;
   }
 
-  .detail-back:hover {
-    color: var(--text);
-  }
+  .detail-back:hover { color: var(--text); }
 
   .detail-back svg {
     width: 16px;
@@ -339,7 +379,6 @@
     align-items: start;
   }
 
-  /* Detail illustration */
   .detail-illustration {
     position: sticky;
     top: 120px;
@@ -352,47 +391,47 @@
     position: relative;
     width: 100%;
     max-width: 400px;
-    aspect-ratio: 3 / 4;
+    aspect-ratio: 5 / 7;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 20px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.035) 100%);
-    border: 1px solid var(--border);
+    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     overflow: hidden;
   }
 
   .detail-img-frame::before {
     content: '';
     position: absolute;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 70%;
-    height: 60%;
-    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.07) 0%, transparent 70%);
+    inset: 10px;
+    border: 1px solid rgba(212, 165, 116, 0.1);
+    border-radius: 14px;
     pointer-events: none;
   }
 
   .detail-img-frame::after {
     content: '';
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(90deg, transparent 5%, rgba(212, 165, 116, 0.25) 30%, rgba(212, 165, 116, 0.4) 50%, rgba(212, 165, 116, 0.25) 70%, transparent 95%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70%;
+    height: 70%;
+    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.06) 0%, transparent 70%);
+    pointer-events: none;
   }
 
   .detail-img-frame img {
-    max-width: 75%;
-    max-height: 85%;
+    position: relative;
+    z-index: 1;
+    max-width: 70%;
+    max-height: 80%;
     object-fit: contain;
-    filter: drop-shadow(0 12px 40px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.4));
     animation: floatPiece 6s ease-in-out infinite;
   }
 
-  /* Detail text */
   .detail-text {
     padding-top: 24px;
   }
@@ -453,9 +492,7 @@
     animation: fadeUp 0.6s ease 0.45s forwards;
   }
 
-  .detail-bio p {
-    margin-bottom: 24px;
-  }
+  .detail-bio p { margin-bottom: 24px; }
 
   .detail-bio p:first-child::first-letter {
     font-family: 'Instrument Serif', Georgia, serif;
@@ -470,10 +507,7 @@
 
   /* ── Animations ── */
   @keyframes fadeUp {
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   @keyframes floatPiece {
@@ -486,7 +520,7 @@
     #shelf-view {
       grid-template-columns: repeat(2, 1fr);
       padding: 32px 24px 100px;
-      gap: 20px;
+      gap: 28px 20px;
     }
 
     .detail-layout {
@@ -494,50 +528,26 @@
       gap: 48px;
     }
 
-    .detail-illustration {
-      position: static;
-      align-items: center;
-    }
-
-    .detail-img-frame {
-      max-width: 300px;
-    }
-
-    .detail-name {
-      font-size: 36px;
-    }
-
-    .page-header h1 {
-      font-size: 36px;
-    }
+    .detail-illustration { position: static; align-items: center; }
+    .detail-img-frame { max-width: 300px; }
+    .detail-name { font-size: 36px; }
+    .page-header h1 { font-size: 36px; }
   }
 
   @media (max-width: 560px) {
     #shelf-view {
       grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
+      gap: 20px 14px;
       padding: 24px 16px 80px;
     }
 
-    .card-label .char-name {
-      font-size: 16px;
-    }
+    .card-name-bar .char-name { font-size: 14px; }
+    .card-corner .corner-role { font-size: 12px; }
 
-    .detail-layout {
-      gap: 32px;
-    }
-
-    #detail-view {
-      padding: 90px 20px 80px;
-    }
-
-    .page-header {
-      padding-top: 84px;
-    }
-
-    .page-header h1 {
-      font-size: 30px;
-    }
+    .detail-layout { gap: 32px; }
+    #detail-view { padding: 90px 20px 80px; }
+    .page-header { padding-top: 84px; }
+    .page-header h1 { font-size: 30px; }
   }
 
 </style>
@@ -557,99 +567,7 @@
 </div>
 
 <!-- Shelf View -->
-<div id="shelf-view">
-
-  <div class="char-card" onclick="showDetail('king')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/King.png" alt="King Leo Longmane" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/King.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">King</div>
-      <div class="char-name">Leo Longmane</div>
-    </div>
-  </div>
-
-  <div class="char-card" onclick="showDetail('queen')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/Queen.png" alt="Queen Beatrix the Brave" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/Queen.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">Queen</div>
-      <div class="char-name">Beatrix the Brave</div>
-    </div>
-  </div>
-
-  <div class="char-card" onclick="showDetail('bishop')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/Bishop.png" alt="Big Bishop Bernard" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/Bishop.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">Bishop</div>
-      <div class="char-name">Big Bernard</div>
-    </div>
-  </div>
-
-  <div class="char-card" onclick="showDetail('knight')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/Knight.png" alt="Nigel Knight" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/Knight.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">Knight</div>
-      <div class="char-name">Nigel Knight</div>
-    </div>
-  </div>
-
-  <div class="char-card" onclick="showDetail('rook')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/Rook.png" alt="Rook O'Roark" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/Rook.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">Rook</div>
-      <div class="char-name">Rook O'Roark</div>
-    </div>
-  </div>
-
-  <div class="char-card" onclick="showDetail('pawn')">
-    <div class="card-stage">
-      <div class="char-img-wrap">
-        <img src="Character Illustrations/Pawn.png" alt="Pawdrick the Pawn" draggable="false">
-      </div>
-      <div class="char-reflection">
-        <img src="Character Illustrations/Pawn.png" alt="" draggable="false">
-      </div>
-    </div>
-    <div class="card-label">
-      <div class="char-role">Pawn</div>
-      <div class="char-name">Pawdrick the Pawn</div>
-    </div>
-  </div>
-
-</div>
+<div id="shelf-view"></div>
 
 <!-- Detail View -->
 <div id="detail-view">
@@ -657,7 +575,6 @@
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><polyline points="12 19 5 12 12 5"/></svg>
     All Characters
   </button>
-
   <div class="detail-layout">
     <div class="detail-illustration">
       <div class="detail-img-frame">
@@ -680,57 +597,116 @@ const characters = {
   king: {
     name: 'King Leo Longmane',
     role: 'King',
+    pip: 'K',
     epithet: 'The Wise Sovereign of Chessbuds Kingdom',
     img: 'Character Illustrations/King.png',
-    bio: `<p>Proud, regal and wise, King Leo Longmane is the very picture of courtly power and grace. Feared by his enemies and venerated by his subjects, the mighty Leo once united a realm through authority and compassion.</p>
-<p>Heavy is the head that wears the crown, though, and a prolonged reign has taken its toll on the aged king. Still, while his steps may be slower than they once were, King Leo continues to command the front. So long as he stands to fight, the battle is never over.</p>`
+    bio: `<p>Proud, regal and wise, King Leo Longmane is the very picture of courtly power and grace. Feared by his enemies and venerated by his subjects, the mighty Leo once united a realm through authority and compassion.</p><p>Heavy is the head that wears the crown, though, and a prolonged reign has taken its toll on the aged king. Still, while his steps may be slower than they once were, King Leo continues to command the front. So long as he stands to fight, the battle is never over.</p>`
   },
   queen: {
     name: 'Queen Beatrix the Brave',
     role: 'Queen',
+    pip: 'Q',
     epithet: 'The Unmatched Queen Bee',
     img: 'Character Illustrations/Queen.png',
-    bio: `<p>It is said that behind every great man there is an even greater woman. Yet Queen Beatrix stands behind no man — she towers over all, despite her bantam insectile stature. In taverns and pubs all across the kingdom, reverential stories are swapped of her multifaceted battle prowess, one that combines the agility of Big Bishop Bernard with the brute strength of Rook O'Roark.</p>
-<p>There are even those who say (although never when King Leo is listening) that in this land, it is she who truly wears the crown, so to speak. Whether that is true or false, no one can say, but woe to the player who finds him or herself face to face with the Queen Bee, anywhere along the field of play.</p>`
+    bio: `<p>It is said that behind every great man there is an even greater woman. Yet Queen Beatrix stands behind no man — she towers over all, despite her bantam insectile stature. In taverns and pubs all across the kingdom, reverential stories are swapped of her multifaceted battle prowess, one that combines the agility of Big Bishop Bernard with the brute strength of Rook O'Roark.</p><p>There are even those who say (although never when King Leo is listening) that in this land, it is she who truly wears the crown, so to speak. Whether that is true or false, no one can say, but woe to the player who finds him or herself face to face with the Queen Bee, anywhere along the field of play.</p>`
   },
   bishop: {
     name: 'Big Bishop Bernard',
     role: 'Bishop',
+    pip: 'B',
     epithet: 'The Right Hand of the King',
     img: 'Character Illustrations/Bishop.png',
-    bio: `<p>As the voice of God and the right hand of the king, it's fair to say that Big Bishop Bernard knows a thing or two about playing the angles. One by one, his challengers have attempted to unseat his place in King Leo's affections, and one by one they have been turned back. Many are those who have measured themselves against the Bishop, and come up short.</p>
-<p>Starting every battle in his honored position next to the king, Big Bernard's fast, cutting attacks are capable of tearing armies to shreds in a matter of minutes. Clad in a loose fitting tunic, the Bishop's true speed is hidden until the moment he leaps out from behind the wall of pawns towards the unsuspecting enemy. By that point, it is already too late.</p>`
+    bio: `<p>As the voice of God and the right hand of the king, it's fair to say that Big Bishop Bernard knows a thing or two about playing the angles. One by one, his challengers have attempted to unseat his place in King Leo's affections, and one by one they have been turned back. Many are those who have measured themselves against the Bishop, and come up short.</p><p>Starting every battle in his honored position next to the king, Big Bernard's fast, cutting attacks are capable of tearing armies to shreds in a matter of minutes. Clad in a loose fitting tunic, the Bishop's true speed is hidden until the moment he leaps out from behind the wall of pawns towards the unsuspecting enemy. By that point, it is already too late.</p>`
   },
   knight: {
     name: 'Nigel Knight',
     role: 'Knight',
+    pip: 'N',
     epithet: 'The Laughing Horse',
     img: 'Character Illustrations/Knight.png',
-    bio: `<p>How to predict the actions of a madman? How indeed. As delusional as he is dangerous, "The Laughing Horse" zigzags across the field of battle to the confusion and horror of his opposition, a lunatic grin plastered across his dappled muzzle.</p>
-<p>Yet Nigel isn't "horsing around" when it comes to war. A prodigious swordsman since he was just a pony, the knight is considered the most creative and crafty warrior in Chessbuds Kingdom. So long as he remains on the field, no line of defense, no matter how well structured, is safe.</p>`
+    bio: `<p>How to predict the actions of a madman? How indeed. As delusional as he is dangerous, "The Laughing Horse" zigzags across the field of battle to the confusion and horror of his opposition, a lunatic grin plastered across his dappled muzzle.</p><p>Yet Nigel isn't "horsing around" when it comes to war. A prodigious swordsman since he was just a pony, the knight is considered the most creative and crafty warrior in Chessbuds Kingdom. So long as he remains on the field, no line of defense, no matter how well structured, is safe.</p>`
   },
   rook: {
     name: "Rook O'Roark",
     role: 'Rook',
+    pip: 'R',
     epithet: 'The Straight Shooter',
     img: 'Character Illustrations/Rook.png',
-    bio: `<p>The rook has always been a straight shooter. Built like Hercules but with wings (although he never brings that up: King Leo has a strong opinion on the heretical Greeks, and likes to keep his fire pit well fueled), O'Roark has been known to carry away even the heaviest of foes without even losing his breath.</p>
-<p>When not punching shotgun holes with a single flick of his razor sharp talons, he can be found holding down the perimeter of King Leo's legendary legion. Simple of design, he has no time for the cross-eyed antics of Nigel Knight. He prefers the direct attack, flying forwards, backwards, and sideways with a clean power that has been known to pin down the enemy's resources for entire battles, leaving them defenseless and easily overcome.</p>`
+    bio: `<p>The rook has always been a straight shooter. Built like Hercules but with wings (although he never brings that up: King Leo has a strong opinion on the heretical Greeks, and likes to keep his fire pit well fueled), O'Roark has been known to carry away even the heaviest of foes without even losing his breath.</p><p>When not punching shotgun holes with a single flick of his razor sharp talons, he can be found holding down the perimeter of King Leo's legendary legion. Simple of design, he has no time for the cross-eyed antics of Nigel Knight. He prefers the direct attack, flying forwards, backwards, and sideways with a clean power that has been known to pin down the enemy's resources for entire battles, leaving them defenseless and easily overcome.</p>`
   },
   pawn: {
     name: 'Pawdrick the Pawn',
     role: 'Pawn',
+    pip: 'P',
     epithet: 'The Valiant Squire',
     img: 'Character Illustrations/Pawn.png',
-    bio: `<p>Don't let his size fool you — Pawdrick is as tough as they come! A valiant squire of humble origin, Pawdrick clawed his way out of strenuous serfdom to earn a coveted spot in King Longmane's retinue.</p>
-<p>There are many who dismiss the Pawn, preferring to lather their attention on the larger players who stand behind him. But underestimate Pawdrick at your own peril; his courage and pluck have decided too many battles to count. Scrappy, loyal and steadfast, this little squirrel is honored to serve on the front line of Chessbuds Kingdom.</p>`
+    bio: `<p>Don't let his size fool you — Pawdrick is as tough as they come! A valiant squire of humble origin, Pawdrick clawed his way out of strenuous serfdom to earn a coveted spot in King Longmane's retinue.</p><p>There are many who dismiss the Pawn, preferring to lather their attention on the larger players who stand behind him. But underestimate Pawdrick at your own peril; his courage and pluck have decided too many battles to count. Scrappy, loyal and steadfast, this little squirrel is honored to serve on the front line of Chessbuds Kingdom.</p>`
   }
 };
 
+// ── Build cards ──
 const shelfView = document.getElementById('shelf-view');
 const detailView = document.getElementById('detail-view');
 const pageHeader = document.querySelector('.page-header');
 
+const order = ['king', 'queen', 'bishop', 'knight', 'rook', 'pawn'];
+
+order.forEach((key) => {
+  const c = characters[key];
+  const card = document.createElement('div');
+  card.className = 'char-card';
+  card.onclick = () => showDetail(key);
+
+  card.innerHTML = `
+    <div class="card-tilt">
+      <div class="card-face">
+        <div class="card-frame"></div>
+        <div class="card-corner top">
+          <span class="corner-role">${c.pip}</span>
+          <span class="corner-pip">${c.role}</span>
+        </div>
+        <div class="card-corner bottom">
+          <span class="corner-role">${c.pip}</span>
+          <span class="corner-pip">${c.role}</span>
+        </div>
+        <div class="card-glow"></div>
+        <div class="char-img-wrap">
+          <img src="${c.img}" alt="${c.name}" draggable="false">
+        </div>
+        <div class="card-name-bar">
+          <div class="char-name">${c.name}</div>
+        </div>
+        <div class="card-shine"></div>
+      </div>
+    </div>
+  `;
+  shelfView.appendChild(card);
+});
+
+// ── 3D Tilt + Shine ──
+document.querySelectorAll('.char-card').forEach(card => {
+  const tilt = card.querySelector('.card-tilt');
+  const shine = card.querySelector('.card-shine');
+
+  card.addEventListener('mousemove', (e) => {
+    const rect = card.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width;
+    const y = (e.clientY - rect.top) / rect.height;
+
+    const rotateY = (x - 0.5) * 14;
+    const rotateX = (0.5 - y) * 14;
+
+    tilt.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    shine.style.setProperty('--shine-x', `${x * 100}%`);
+    shine.style.setProperty('--shine-y', `${y * 100}%`);
+  });
+
+  card.addEventListener('mouseleave', () => {
+    tilt.style.transform = 'rotateX(0deg) rotateY(0deg)';
+  });
+});
+
+// ── Detail View ──
 function showDetail(key) {
   const c = characters[key];
   if (!c) return;
@@ -745,12 +721,10 @@ function showDetail(key) {
   shelfView.classList.add('hidden');
   pageHeader.style.display = 'none';
 
-  // Reset animations by removing and re-adding the class
   detailView.classList.remove('active');
   void detailView.offsetWidth;
   detailView.classList.add('active');
 
-  // Reset child animations
   detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio').forEach(el => {
     el.style.animation = 'none';
     void el.offsetWidth;
@@ -764,10 +738,8 @@ function showDetail(key) {
 function hideDetail() {
   detailView.classList.remove('active');
   pageHeader.style.display = '';
-
   shelfView.classList.remove('hidden');
 
-  // Re-trigger card animations
   document.querySelectorAll('.char-card').forEach(card => {
     card.style.animation = 'none';
     void card.offsetWidth;
@@ -778,7 +750,6 @@ function hideDetail() {
   history.pushState(null, '', window.location.pathname);
 }
 
-// Handle browser back/forward
 window.addEventListener('popstate', (e) => {
   if (e.state && e.state.character) {
     showDetail(e.state.character);
@@ -787,12 +758,9 @@ window.addEventListener('popstate', (e) => {
   }
 });
 
-// Handle direct hash navigation
 if (window.location.hash) {
   const key = window.location.hash.slice(1);
-  if (characters[key]) {
-    showDetail(key);
-  }
+  if (characters[key]) showDetail(key);
 }
 
 </script>
