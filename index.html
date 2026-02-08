@@ -71,6 +71,32 @@
     opacity: 0.5;
   }
 
+  #nav-characters {
+    position: absolute;
+    right: 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 9px 20px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
+
+  #nav-characters:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
   #status-display {
     font-family: 'DM Sans', sans-serif;
     font-weight: 400;
@@ -442,6 +468,7 @@
 <div id="top-bar">
   <div id="game-title">Chessbuds</div>
   <div id="status-display">White to move</div>
+  <a id="nav-characters" href="characters.html">Characters</a>
 </div>
 
 <div class="captured-panel left">
@@ -1620,12 +1647,12 @@ function boardToWorld(row, col) {
 
 // ─── STL LOADING ─────────────────────────────────────────────
 const STL_FILES = {
-  bishop: 'Bishop%20Final%20STL.stl',
+  bishop: 'Bishop.stl',
   king: 'King%20Final%20STL.stl',
-  knight: 'Knight%20Final%20STL.stl',
-  rook: 'character%20stl%20file%202.stl',
-  queen: 'character%20stl%20file.stl',
-  pawn: 'character%20stl%20file%203%20(2).stl'
+  knight: 'Knight.stl',
+  rook: 'Rook.stl',
+  queen: 'Queen.stl',
+  pawn: 'Pawn.stl'
 };
 
 function processGeometry(geometry, targetHeight) {
