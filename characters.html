@@ -32,7 +32,7 @@
     overflow-x: hidden;
   }
 
-  /* ── Navigation ── */
+  /* ── Top bar ── */
   #top-bar {
     position: fixed;
     top: 0;
@@ -42,7 +42,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 28px;
+    padding: 16px 20px;
+    pointer-events: none;
   }
 
   #game-title {
@@ -53,9 +54,11 @@
     letter-spacing: 0.02em;
     color: var(--text);
     position: absolute;
-    left: 28px;
+    top: 20px;
+    left: 20px;
     opacity: 0.5;
     text-decoration: none;
+    pointer-events: auto;
     transition: opacity 0.3s ease;
   }
 
@@ -63,25 +66,34 @@
 
   #nav-characters {
     position: absolute;
-    right: 28px;
+    top: 20px;
+    right: 20px;
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 500;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--text-dim);
     text-decoration: none;
     padding: 9px 20px;
-    border: 1px solid var(--accent-dim);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    background: rgba(212, 165, 116, 0.08);
+    background: var(--surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    pointer-events: auto;
+    transition: all 0.2s ease;
+  }
+
+  #nav-characters:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+    color: var(--text);
   }
 
   /* ── Page header ── */
   .page-header {
-    padding-top: 100px;
+    padding-top: 120px;
     text-align: center;
     margin-bottom: 16px;
   }
@@ -505,6 +517,110 @@
     color: var(--accent);
   }
 
+  /* ── Other Characters Nav ── */
+  .detail-others {
+    margin-top: 80px;
+    padding-top: 48px;
+    border-top: 1px solid var(--border);
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeUp 0.5s ease 0.55s forwards;
+  }
+
+  .detail-others-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+
+  .detail-others-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .other-card {
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
+    border: 1px solid var(--border);
+    aspect-ratio: 5 / 7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .other-card:hover {
+    border-color: rgba(212, 165, 116, 0.25);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .other-card img {
+    max-width: 60%;
+    max-height: 55%;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+    transition: transform 0.3s ease;
+  }
+
+  .other-card:hover img {
+    transform: scale(1.06);
+  }
+
+  .other-card-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 6px;
+    text-align: center;
+    background: linear-gradient(to top, rgba(14,14,13,0.95), transparent);
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: color 0.3s ease;
+  }
+
+  .other-card:hover .other-card-name {
+    color: var(--accent);
+  }
+
+  /* ── Play CTA ── */
+  .detail-cta {
+    margin-top: 40px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeUp 0.5s ease 0.6s forwards;
+  }
+
+  .detail-cta a {
+    display: inline-block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--bg);
+    background: var(--text);
+    text-decoration: none;
+    padding: 14px 40px;
+    border-radius: var(--radius);
+    transition: all 0.2s ease;
+  }
+
+  .detail-cta a:hover {
+    background: #fff;
+  }
+
   /* ── Animations ── */
   @keyframes fadeUp {
     to { opacity: 1; transform: translateY(0) scale(1); }
@@ -544,6 +660,7 @@
     .card-name-bar .char-name { font-size: 14px; }
     .card-corner .corner-role { font-size: 12px; }
 
+    .detail-others-grid { grid-template-columns: repeat(3, 1fr); }
     .detail-layout { gap: 32px; }
     #detail-view { padding: 90px 20px 80px; }
     .page-header { padding-top: 84px; }
@@ -588,6 +705,17 @@
       <div class="detail-divider"></div>
       <div class="detail-bio" id="detail-bio"></div>
     </div>
+  </div>
+
+  <!-- Other Characters -->
+  <div class="detail-others" id="detail-others">
+    <div class="detail-others-label">Other Characters</div>
+    <div class="detail-others-grid" id="detail-others-grid"></div>
+  </div>
+
+  <!-- Play CTA -->
+  <div class="detail-cta">
+    <a href="index.html">Play a Game</a>
   </div>
 </div>
 
@@ -718,6 +846,19 @@ function showDetail(key) {
   document.getElementById('detail-epithet').textContent = c.epithet;
   document.getElementById('detail-bio').innerHTML = c.bio;
 
+  // Build other characters grid
+  const othersGrid = document.getElementById('detail-others-grid');
+  othersGrid.innerHTML = '';
+  order.filter(k => k !== key).forEach(k => {
+    const o = characters[k];
+    const card = document.createElement('div');
+    card.className = 'other-card';
+    card.onclick = (e) => { e.stopPropagation(); showDetail(k); };
+    const shortNames = { king: 'Leo', queen: 'Beatrix', bishop: 'Bernard', knight: 'Nigel', rook: "O'Roark", pawn: 'Pawdrick' };
+    card.innerHTML = `<img src="${o.img}" alt="${o.name}" draggable="false"><div class="other-card-name">${shortNames[k]}</div>`;
+    othersGrid.appendChild(card);
+  });
+
   shelfView.classList.add('hidden');
   pageHeader.style.display = 'none';
 
@@ -725,7 +866,7 @@ function showDetail(key) {
   void detailView.offsetWidth;
   detailView.classList.add('active');
 
-  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio').forEach(el => {
+  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio, .detail-others, .detail-cta').forEach(el => {
     el.style.animation = 'none';
     void el.offsetWidth;
     el.style.animation = '';

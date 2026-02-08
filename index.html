@@ -55,7 +55,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 28px;
+    padding: 16px 20px;
     pointer-events: none;
   }
 
@@ -67,13 +67,15 @@
     letter-spacing: 0.02em;
     color: var(--text);
     position: absolute;
-    left: 28px;
+    top: 20px;
+    left: 20px;
     opacity: 0.5;
   }
 
   #nav-characters {
     position: absolute;
-    right: 28px;
+    top: 20px;
+    right: 20px;
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 500;
@@ -369,9 +371,9 @@
   }
 
   .setting-options {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
     gap: 6px;
-    flex-wrap: wrap;
   }
 
   .setting-opt {
@@ -385,9 +387,7 @@
     padding: 9px 16px;
     cursor: pointer;
     transition: all 0.2s ease;
-    flex: 1;
     text-align: center;
-    min-width: 70px;
   }
 
   .setting-opt:hover {
@@ -462,7 +462,7 @@
   <div id="loading-title">Chessbuds</div>
   <canvas id="loading-canvas"></canvas>
   <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
-  <div id="loading-text">Loading pieces...</div>
+  <div id="loading-text">Rallying the kingdom...</div>
 </div>
 
 <div id="top-bar">
@@ -485,6 +485,7 @@
   <button class="btn" onclick="resetGame()">New Game</button>
   <button class="btn" onclick="undoMove()">Undo</button>
   <button class="btn" onclick="flipBoard()">Flip Board</button>
+  <button class="btn" id="cam-btn" onclick="cycleCamera()">View: Classic</button>
   <button class="btn" id="env-btn" onclick="cycleEnvironment()">Theme: Study</button>
   <button class="btn" onclick="showSettings()">Settings</button>
 </div>
@@ -1792,7 +1793,16 @@ async function loadPieces() {
   initLoadingScene();
 
   // Load knight FIRST so the spinner shows quickly
-  loadText.textContent = 'Loading knight...';
+  const loadingMessages = {
+    knight: 'Saddling up Nigel Knight...',
+    king: 'Polishing King Leo\'s crown...',
+    queen: 'Sharpening the Queen Bee\'s scepter...',
+    bishop: 'Fitting Big Bernard\'s tunic...',
+    rook: 'Preening O\'Roark\'s feathers...',
+    pawn: 'Arming Pawdrick for battle...'
+  };
+
+  loadText.textContent = loadingMessages.knight;
   await yieldToMain();
   try {
     const knightGeo = await loadSinglePiece(loader, 'knight', STL_FILES.knight, PIECE_HEIGHTS.knight);
@@ -1812,7 +1822,7 @@ async function loadPieces() {
   const remaining = Object.entries(STL_FILES).filter(([name]) => name !== 'knight');
 
   for (const [name, file] of remaining) {
-    loadText.textContent = `Loading ${name}...`;
+    loadText.textContent = loadingMessages[name] || `Summoning ${name}...`;
     await yieldToMain();
     try {
       const geometry = await loadSinglePiece(loader, name, file, PIECE_HEIGHTS[name]);
@@ -1832,7 +1842,7 @@ async function loadPieces() {
     await yieldToMain();
   }
 
-  loadText.textContent = 'Setting up board...';
+  loadText.textContent = 'Assembling the battlefield...';
   await new Promise(r => setTimeout(r, 200));
 
   syncPiecesToBoard();
@@ -2090,6 +2100,67 @@ window.flipBoard = function() {
   syncPiecesToBoard();
   showHighlights();
 };
+
+// ─── CAMERA PRESETS ──────────────────────────────────────────
+const cameraPresets = [
+  { name: 'Classic',   pos: [0, 18, 16],   target: [0, 0, 0],  fov: 40 },
+  { name: 'Top Down',  pos: [0, 28, 0.01], target: [0, 0, 0],  fov: 38 },
+  { name: 'Low',       pos: [0, 5, 20],    target: [0, 1, 0],  fov: 44 },
+  { name: 'Dramatic',  pos: [14, 12, 14],  target: [0, 0, 0],  fov: 36 },
+  { name: 'Side',      pos: [22, 10, 0],   target: [0, 0, 0],  fov: 40 },
+];
+let currentCamPreset = 0;
+let camAnimating = false;
+
+window.cycleCamera = function() {
+  if (camAnimating) return;
+  currentCamPreset = (currentCamPreset + 1) % cameraPresets.length;
+  const preset = cameraPresets[currentCamPreset];
+  document.getElementById('cam-btn').textContent = `View: ${preset.name}`;
+  animateCamera(preset);
+};
+
+function animateCamera(preset) {
+  camAnimating = true;
+  const startPos = { x: camera.position.x, y: camera.position.y, z: camera.position.z };
+  const startTarget = { x: controls.target.x, y: controls.target.y, z: controls.target.z };
+  const startFov = camera.fov;
+  const endPos = { x: preset.pos[0], y: preset.pos[1], z: preset.pos[2] };
+  const endTarget = { x: preset.target[0], y: preset.target[1], z: preset.target[2] };
+  const endFov = preset.fov;
+  const duration = 800;
+  const startTime = performance.now();
+
+  function ease(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function step(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    const e = ease(t);
+
+    camera.position.set(
+      startPos.x + (endPos.x - startPos.x) * e,
+      startPos.y + (endPos.y - startPos.y) * e,
+      startPos.z + (endPos.z - startPos.z) * e
+    );
+    controls.target.set(
+      startTarget.x + (endTarget.x - startTarget.x) * e,
+      startTarget.y + (endTarget.y - startTarget.y) * e,
+      startTarget.z + (endTarget.z - startTarget.z) * e
+    );
+    camera.fov = startFov + (endFov - startFov) * e;
+    camera.updateProjectionMatrix();
+    controls.update();
+
+    if (t < 1) {
+      requestAnimationFrame(step);
+    } else {
+      camAnimating = false;
+    }
+  }
+  requestAnimationFrame(step);
+}
 
 // ─── MOVE ANIMATION ──────────────────────────────────────────
 let activeAnimations = [];
