@@ -129,6 +129,60 @@
     font-weight: 500;
   }
 
+  /* ── Chess Clocks (inside side panels) ── */
+  .chess-clock {
+    display: none;
+    font-family: 'DM Sans', sans-serif;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    padding: 10px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-dim);
+    transition: all 0.3s ease;
+  }
+
+  .chess-clock.visible { display: block; }
+
+  .chess-clock.active-clock {
+    color: var(--text);
+    border-color: var(--accent-dim);
+    background: rgba(212, 165, 116, 0.1);
+  }
+
+  .chess-clock.low-time {
+    color: var(--danger-text);
+    border-color: var(--danger);
+    background: rgba(80, 25, 20, 0.5);
+  }
+
+  .chess-clock .clock-time {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+  }
+
+  .chess-clock .clock-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.45;
+    margin-top: 3px;
+  }
+
+  .panel-divider {
+    display: none;
+    width: 24px;
+    height: 1px;
+    background: var(--border);
+    margin: 6px auto;
+  }
+
+  .panel-divider.visible { display: block; }
+
   /* ── Captured panels ── */
   .captured-panel {
     position: fixed;
@@ -137,9 +191,11 @@
     transform: translateY(-50%);
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 2px;
     padding: 14px 10px;
     pointer-events: none;
+    min-width: 52px;
   }
 
   .captured-panel.left { left: 16px; }
@@ -153,7 +209,7 @@
     text-transform: uppercase;
     color: var(--text-muted);
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .captured-piece {
@@ -372,8 +428,17 @@
 
   .setting-options {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 6px;
+  }
+
+  #opt-opponent,
+  #opt-color {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  #opt-time .setting-opt.full-width {
+    grid-column: 1 / -1;
   }
 
   .setting-opt {
@@ -472,11 +537,21 @@
 </div>
 
 <div class="captured-panel left">
+  <div class="chess-clock" id="clock-white">
+    <div class="clock-time" id="clock-white-time">30:00</div>
+    <div class="clock-label">White</div>
+  </div>
+  <div class="panel-divider"></div>
   <div class="label">Captured</div>
   <div id="captured-white"></div>
 </div>
 
 <div class="captured-panel right">
+  <div class="chess-clock" id="clock-black">
+    <div class="clock-time" id="clock-black-time">30:00</div>
+    <div class="clock-label">Black</div>
+  </div>
+  <div class="panel-divider"></div>
   <div class="label">Captured</div>
   <div id="captured-black"></div>
 </div>
@@ -486,7 +561,7 @@
   <button class="btn" onclick="undoMove()">Undo</button>
   <button class="btn" onclick="flipBoard()">Flip Board</button>
   <button class="btn" id="cam-btn" onclick="cycleCamera()">View: Classic</button>
-  <button class="btn" id="env-btn" onclick="cycleEnvironment()">Theme: Study</button>
+  <button class="btn" id="env-btn" onclick="cycleEnvironment()">Theme: Throne Room</button>
   <button class="btn" onclick="showSettings()">Settings</button>
 </div>
 
@@ -526,6 +601,16 @@
       <div class="setting-options" id="opt-color">
         <button class="setting-opt selected" data-val="w" onclick="selectOpt('color',this)">White</button>
         <button class="setting-opt" data-val="b" onclick="selectOpt('color',this)">Black</button>
+      </div>
+    </div>
+    <div class="setting-group">
+      <label>Time Control</label>
+      <div class="setting-options" id="opt-time">
+        <button class="setting-opt" data-val="120" onclick="selectOpt('time',this)">Bullet</button>
+        <button class="setting-opt" data-val="300" onclick="selectOpt('time',this)">Rapid</button>
+        <button class="setting-opt" data-val="600" onclick="selectOpt('time',this)">Speed</button>
+        <button class="setting-opt" data-val="1800" onclick="selectOpt('time',this)">Classic</button>
+        <button class="setting-opt selected full-width" data-val="0" onclick="selectOpt('time',this)">Unlimited</button>
       </div>
     </div>
     <button class="settings-start" onclick="startGame()">Play</button>
@@ -1176,9 +1261,107 @@ class ChessAI {
 }
 
 // ─── GAME SETTINGS ───────────────────────────────────────────
-let gameSettings = { opponent: 'bot', difficulty: 2, playerColor: 'w' };
+let gameSettings = { opponent: 'bot', difficulty: 2, playerColor: 'w', timeControl: 0 };
 let botAI = null;
 let botThinking = false;
+
+// ─── CHESS CLOCK ─────────────────────────────────────────────
+let clockWhite = 0;   // remaining seconds (float)
+let clockBlack = 0;
+let clockInterval = null;
+let clockActive = null; // 'w', 'b', or null
+let lastClockTick = 0;
+
+function formatClockTime(seconds) {
+  if (seconds <= 0) return '0:00';
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function updateClockDisplay() {
+  const wEl = document.getElementById('clock-white-time');
+  const bEl = document.getElementById('clock-black-time');
+  const wCard = document.getElementById('clock-white');
+  const bCard = document.getElementById('clock-black');
+
+  wEl.textContent = formatClockTime(clockWhite);
+  bEl.textContent = formatClockTime(clockBlack);
+
+  wCard.classList.toggle('active-clock', clockActive === 'w');
+  bCard.classList.toggle('active-clock', clockActive === 'b');
+  wCard.classList.toggle('low-time', clockWhite > 0 && clockWhite <= 30);
+  bCard.classList.toggle('low-time', clockBlack > 0 && clockBlack <= 30);
+}
+
+function startClock(color) {
+  if (gameSettings.timeControl === 0) return;
+  clockActive = color;
+  lastClockTick = performance.now();
+  if (!clockInterval) {
+    clockInterval = setInterval(tickClock, 100);
+  }
+  updateClockDisplay();
+}
+
+function stopClock() {
+  clockActive = null;
+  if (clockInterval) {
+    clearInterval(clockInterval);
+    clockInterval = null;
+  }
+  updateClockDisplay();
+}
+
+function switchClock() {
+  if (gameSettings.timeControl === 0 || engine.gameOver) return;
+  startClock(engine.turn);
+}
+
+function tickClock() {
+  if (!clockActive || engine.gameOver) { stopClock(); return; }
+  const now = performance.now();
+  const elapsed = (now - lastClockTick) / 1000;
+  lastClockTick = now;
+
+  if (clockActive === 'w') {
+    clockWhite = Math.max(0, clockWhite - elapsed);
+    if (clockWhite <= 0) { clockWhite = 0; flagTimeout('w'); return; }
+  } else {
+    clockBlack = Math.max(0, clockBlack - elapsed);
+    if (clockBlack <= 0) { clockBlack = 0; flagTimeout('b'); return; }
+  }
+  updateClockDisplay();
+}
+
+function flagTimeout(color) {
+  stopClock();
+  const loser = color === 'w' ? 'White' : 'Black';
+  const winner = color === 'w' ? 'Black' : 'White';
+  engine.gameOver = true;
+  engine.gameResult = `${winner} wins on time`;
+  updateStatus();
+  updateClockDisplay();
+}
+
+function initClocks(seconds) {
+  stopClock();
+  clockWhite = seconds;
+  clockBlack = seconds;
+  const wClock = document.getElementById('clock-white');
+  const bClock = document.getElementById('clock-black');
+  const dividers = document.querySelectorAll('.panel-divider');
+  if (seconds > 0) {
+    wClock.classList.add('visible');
+    bClock.classList.add('visible');
+    dividers.forEach(d => d.classList.add('visible'));
+    updateClockDisplay();
+  } else {
+    wClock.classList.remove('visible');
+    bClock.classList.remove('visible');
+    dividers.forEach(d => d.classList.remove('visible'));
+  }
+}
 
 window.selectOpt = function(group, btn) {
   const container = btn.parentElement;
@@ -1200,8 +1383,9 @@ window.startGame = function() {
   const opponent = document.querySelector('#opt-opponent .selected').dataset.val;
   const difficulty = parseInt(document.querySelector('#opt-difficulty .selected').dataset.val);
   const playerColor = document.querySelector('#opt-color .selected').dataset.val;
+  const timeControl = parseInt(document.querySelector('#opt-time .selected').dataset.val);
 
-  gameSettings = { opponent, difficulty, playerColor };
+  gameSettings = { opponent, difficulty, playerColor, timeControl };
 
   engine.reset();
   selectedSquare = null;
@@ -1215,6 +1399,9 @@ window.startGame = function() {
   updateStatus();
   updateCaptured();
 
+  // Initialize clocks
+  initClocks(timeControl);
+
   document.getElementById('settings-modal').classList.remove('active');
 
   if (opponent === 'bot') {
@@ -1222,9 +1409,14 @@ window.startGame = function() {
     // If player chose black, bot moves first
     if (playerColor === 'b') {
       scheduleBotMove();
+    } else if (timeControl > 0) {
+      startClock('w');
     }
   } else {
-    botAI = null;
+    // Human vs Human: start white's clock
+    if (timeControl > 0) {
+      startClock('w');
+    }
   }
 };
 
@@ -1264,6 +1456,7 @@ function scheduleBotMove() {
       syncPiecesToBoard();
       updateStatus();
       updateCaptured();
+      if (!engine.gameOver) switchClock();
     }
 
     botThinking = false;
@@ -1312,59 +1505,38 @@ let ambientLight, keyLight, fillLight, rimLight, topLight, groundMesh, bgSphere;
 let pmremGen;
 
 const ENVIRONMENTS = [
+  // ── THRONE ROOM ─────────────────────────────────────────────
+  // Royal opulence. Chandelier golds, crimson tapestries, polished
+  // marble board with a gilded gold frame.
   {
-    name: 'Study',
-    bg: [0x0E0A06, 0x1A1209, 0x2A1E10], // gradient top→mid→bot
-    fog: [0x0E0A06, 0.008],
-    ground: 0x0A0705,
-    ambient: [0xFFF5E6, 0.6],
-    key: [0xFFF0DD, 2.0, [8, 22, 8]],
-    fill: [0xC0D0E8, 0.8, [-10, 12, -6]],
-    rim: [0xFFD090, 0.6, [-4, 8, 12]],
-    top: [0xFFFFFF, 0.4],
-    exposure: 1.3,
+    name: 'Throne Room',
+    bg: [0x1A0C0A, 0x2A1410, 0x140808],
+    fog: [0x1A0C0A, 0.006],
+    ground: { color: 0x1A100C, roughness: 0.4, metalness: 0.15 },
+    ambient: [0xFFEEDD, 0.55],
+    key: [0xFFDD99, 2.4, [8, 22, 6]],
+    fill: [0xDD8866, 0.7, [-10, 10, -6]],
+    rim: [0xFFCC77, 0.6, [-6, 8, 14]],
+    top: [0xFFEECC, 0.5],
+    exposure: 1.45,
     envPanels: {
-      top: 0xFFEECC, front: 0x887766, back: 0x554433,
-      sides: 0x665544, floor: 0x221100
+      top: 0xFFCC66, front: 0xAA4433, back: 0x882222,
+      sides: 0x994433, floor: 0x2A1A0A
+    },
+    board: {
+      light: { color: 0xF0E8D8, roughness: 0.3, metalness: 0.05 },
+      dark: { color: 0x5C1A1A, roughness: 0.35, metalness: 0.05 },
+      border: { color: 0xB8862C, roughness: 0.25, metalness: 0.6 }
     }
   },
-  {
-    name: 'Moonlight',
-    bg: [0x080C14, 0x0A1020, 0x060810],
-    fog: [0x080C14, 0.010],
-    ground: 0x060810,
-    ambient: [0xAABBDD, 0.5],
-    key: [0xCCDDFF, 1.6, [6, 20, -8]],
-    fill: [0x4466AA, 0.5, [-8, 10, 6]],
-    rim: [0x8899CC, 0.4, [10, 5, 10]],
-    top: [0xAABBEE, 0.3],
-    exposure: 1.2,
-    envPanels: {
-      top: 0x2244AA, front: 0x1A2240, back: 0x101830,
-      sides: 0x182040, floor: 0x080810
-    }
-  },
-  {
-    name: 'Golden Hour',
-    bg: [0x1A0800, 0x331500, 0x110500],
-    fog: [0x1A0800, 0.006],
-    ground: 0x110500,
-    ambient: [0xFFDDAA, 0.5],
-    key: [0xFFAA44, 2.2, [-10, 14, 6]],
-    fill: [0xFF8833, 0.6, [8, 8, -6]],
-    rim: [0xFFCC66, 0.8, [0, 4, -14]],
-    top: [0xFFBB77, 0.4],
-    exposure: 1.5,
-    envPanels: {
-      top: 0xFF9944, front: 0xCC6622, back: 0x884411,
-      sides: 0xAA5500, floor: 0x220800
-    }
-  },
+  // ── MARBLE HALL ──────────────────────────────────────────────
+  // Bright classical hall with polished marble floors, tall windows,
+  // and clean white light. Elegant and open.
   {
     name: 'Marble Hall',
     bg: [0xD0CCC4, 0xB8B4AC, 0x908880],
     fog: [0xC0BCB4, 0.005],
-    ground: 0xA8A498,
+    ground: { color: 0xA8A498, roughness: 0.35, metalness: 0.1 },
     ambient: [0xFFFFFF, 0.9],
     key: [0xFFFFFF, 1.8, [10, 24, 10]],
     fill: [0xE8E4E0, 1.0, [-10, 14, -8]],
@@ -1374,22 +1546,83 @@ const ENVIRONMENTS = [
     envPanels: {
       top: 0xFFFFFF, front: 0xDDDDCC, back: 0xCCCCBB,
       sides: 0xCCCCBB, floor: 0xAAAAAA
+    },
+    board: {
+      light: { color: 0xF5F0EA, roughness: 0.18, metalness: 0.08 },
+      dark: { color: 0xB0A898, roughness: 0.22, metalness: 0.06 },
+      border: { color: 0xE8E2DA, roughness: 0.15, metalness: 0.1 }
     }
   },
+  // ── WAR CAMP ────────────────────────────────────────────────
+  // Outdoor military encampment at dusk. Low campfire light,
+  // smoky haze, last traces of twilight above.
   {
-    name: 'Emerald',
-    bg: [0x020A04, 0x061808, 0x030C04],
-    fog: [0x030C04, 0.009],
-    ground: 0x020804,
-    ambient: [0xCCFFCC, 0.45],
-    key: [0xEEFFDD, 1.8, [8, 20, 8]],
-    fill: [0x66AA88, 0.6, [-10, 10, -6]],
-    rim: [0x44CC66, 0.5, [-4, 6, 12]],
-    top: [0xDDFFDD, 0.35],
-    exposure: 1.3,
+    name: 'War Camp',
+    bg: [0x1A1008, 0x332010, 0x110A04],
+    fog: [0x201208, 0.007],
+    ground: { color: 0x1A1208, roughness: 0.98, metalness: 0.0 },
+    ambient: [0xFFCCAA, 0.35],
+    key: [0xFF8833, 2.5, [-5, 8, 6]],
+    fill: [0x334466, 0.4, [10, 14, -8]],
+    rim: [0xFF6622, 0.8, [4, 3, 10]],
+    top: [0x556688, 0.25],
+    exposure: 1.4,
     envPanels: {
-      top: 0x88DD88, front: 0x446644, back: 0x334433,
-      sides: 0x3A5A3A, floor: 0x0A1A0A
+      top: 0x2A3044, front: 0xAA5522, back: 0x221A10,
+      sides: 0x443322, floor: 0x110800
+    },
+    board: {
+      light: { color: 0xC8B090, roughness: 0.75, metalness: 0.0 },
+      dark: { color: 0x5A4030, roughness: 0.8, metalness: 0.0 },
+      border: { color: 0x3A2818, roughness: 0.7, metalness: 0.0 }
+    }
+  },
+  // ── FROZEN KEEP ─────────────────────────────────────────────
+  // Icy castle battlement under moonlight. Cold blues and silvers,
+  // frost on stone. Dark and stark.
+  {
+    name: 'Frozen Keep',
+    bg: [0x0A1020, 0x142038, 0x081018],
+    fog: [0x0C1420, 0.008],
+    ground: { color: 0x1A2030, roughness: 0.7, metalness: 0.1 },
+    ambient: [0xAABBDD, 0.45],
+    key: [0xCCDDFF, 1.8, [4, 20, -10]],
+    fill: [0x4466AA, 0.5, [-10, 8, 6]],
+    rim: [0x99BBEE, 0.5, [8, 4, 12]],
+    top: [0xBBCCEE, 0.35],
+    exposure: 1.15,
+    envPanels: {
+      top: 0x1A2244, front: 0x3A4466, back: 0x2A3355,
+      sides: 0x334466, floor: 0x0A0E18
+    },
+    board: {
+      light: { color: 0xC8D0DD, roughness: 0.4, metalness: 0.1 },
+      dark: { color: 0x3A4455, roughness: 0.5, metalness: 0.1 },
+      border: { color: 0x2A3040, roughness: 0.35, metalness: 0.15 }
+    }
+  },
+  // ── DRAGON'S LAIR ───────────────────────────────────────────
+  // Deep underground cavern. Lava and embers glow from below,
+  // darkness above. Obsidian board with metallic sheen.
+  {
+    name: "Dragon's Lair",
+    bg: [0x0A0404, 0x1A0808, 0x2A0A00],
+    fog: [0x100404, 0.010],
+    ground: { color: 0x1A0A04, roughness: 0.85, metalness: 0.05 },
+    ambient: [0xFF8866, 0.3],
+    key: [0xFF4411, 2.0, [0, 4, -10]],
+    fill: [0xFF6633, 1.0, [-8, 2, 8]],
+    rim: [0xFF2200, 0.9, [6, 1, 10]],
+    top: [0x332222, 0.2],
+    exposure: 1.5,
+    envPanels: {
+      top: 0x110808, front: 0xAA3300, back: 0x881100,
+      sides: 0x661100, floor: 0xCC4400
+    },
+    board: {
+      light: { color: 0x4A4040, roughness: 0.5, metalness: 0.15 },
+      dark: { color: 0x1A1010, roughness: 0.45, metalness: 0.2 },
+      border: { color: 0x2A1008, roughness: 0.3, metalness: 0.25 }
     }
   }
 ];
@@ -1467,7 +1700,22 @@ function applyEnvironment(index) {
   scene.fog = new THREE.FogExp2(env.fog[0], env.fog[1]);
 
   // Ground
-  groundMesh.material.color.setHex(env.ground);
+  groundMesh.material.color.setHex(env.ground.color);
+  groundMesh.material.roughness = env.ground.roughness;
+  groundMesh.material.metalness = env.ground.metalness;
+
+  // Board materials
+  lightSquareMat.color.setHex(env.board.light.color);
+  lightSquareMat.roughness = env.board.light.roughness;
+  lightSquareMat.metalness = env.board.light.metalness;
+
+  darkSquareMat.color.setHex(env.board.dark.color);
+  darkSquareMat.roughness = env.board.dark.roughness;
+  darkSquareMat.metalness = env.board.dark.metalness;
+
+  borderMat.color.setHex(env.board.border.color);
+  borderMat.roughness = env.board.border.roughness;
+  borderMat.metalness = env.board.border.metalness;
 
   // Lights
   ambientLight.color.setHex(env.ambient[0]);
@@ -2011,6 +2259,7 @@ async function executeMove(move) {
   syncPiecesToBoard();
   updateStatus();
   updateCaptured();
+  if (!engine.gameOver) switchClock();
   scheduleBotMove();
 }
 
@@ -2029,6 +2278,7 @@ window.doPromotion = async function(type) {
   syncPiecesToBoard();
   updateStatus();
   updateCaptured();
+  if (!engine.gameOver) switchClock();
   scheduleBotMove();
 };
 
@@ -2039,6 +2289,7 @@ function updateStatus() {
   if (engine.gameOver) {
     el.textContent = engine.gameResult;
     el.classList.add('gameover');
+    stopClock();
   } else if (engine.inCheck) {
     const side = engine.turn === 'w' ? 'White' : 'Black';
     const who = isBotTurn() ? `${side} (Bot)` : side;
@@ -2063,6 +2314,7 @@ function updateCaptured() {
 // ─── GLOBAL ACTIONS ──────────────────────────────────────────
 window.resetGame = function() {
   botThinking = false;
+  stopClock();
   document.getElementById('bot-thinking').classList.remove('active');
   showSettings();
 };
