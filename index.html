@@ -561,7 +561,7 @@
   <button class="btn" onclick="undoMove()">Undo</button>
   <button class="btn" onclick="flipBoard()">Flip Board</button>
   <button class="btn" id="cam-btn" onclick="cycleCamera()">View: Classic</button>
-  <button class="btn" id="env-btn" onclick="cycleEnvironment()">Theme: Throne Room</button>
+  <button class="btn" id="env-btn" onclick="cycleEnvironment()">Theme: Castle Hall</button>
   <button class="btn" onclick="showSettings()">Settings</button>
 </div>
 
@@ -1505,6 +1505,30 @@ let ambientLight, keyLight, fillLight, rimLight, topLight, groundMesh, bgSphere;
 let pmremGen;
 
 const ENVIRONMENTS = [
+  // ── CASTLE HALL ─────────────────────────────────────────────
+  // Modest medieval stone hall. Warm candlelight, quiet and intimate.
+  // Dark wood board on a stone table. Understated and classic.
+  {
+    name: 'Castle Hall',
+    bg: [0x12100E, 0x1A1510, 0x0E0B08],
+    fog: [0x12100E, 0.009],
+    ground: { color: 0x2A2520, roughness: 0.95, metalness: 0.0 },
+    ambient: [0xFFE8CC, 0.4],
+    key: [0xFFCC88, 2.0, [6, 18, 4]],
+    fill: [0x8899BB, 0.45, [-8, 10, -8]],
+    rim: [0xFFAA55, 0.5, [-3, 6, 12]],
+    top: [0xFFDDBB, 0.3],
+    exposure: 1.2,
+    envPanels: {
+      top: 0x3A3028, front: 0x887055, back: 0x44382A,
+      sides: 0x554838, floor: 0x1A1510
+    },
+    board: {
+      light: { color: 0xD4C4A8, roughness: 0.55, metalness: 0.0 },
+      dark: { color: 0x4A3320, roughness: 0.6, metalness: 0.0 },
+      border: { color: 0x2E1E10, roughness: 0.35, metalness: 0.05 }
+    }
+  },
   // ── THRONE ROOM ─────────────────────────────────────────────
   // Royal opulence. Chandelier golds, crimson tapestries, polished
   // marble board with a gilded gold frame.
@@ -1533,7 +1557,7 @@ const ENVIRONMENTS = [
   // Bright classical hall with polished marble floors, tall windows,
   // and clean white light. Elegant and open.
   {
-    name: 'Marble Hall',
+    name: 'Marble Court',
     bg: [0xD0CCC4, 0xB8B4AC, 0x908880],
     fog: [0xC0BCB4, 0.005],
     ground: { color: 0xA8A498, roughness: 0.35, metalness: 0.1 },
