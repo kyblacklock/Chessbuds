@@ -50,7 +50,7 @@
     font-family: 'Instrument Serif', Georgia, serif;
     font-weight: 400;
     font-style: italic;
-    font-size: 18px;
+    font-size: 22px;
     letter-spacing: 0.02em;
     color: var(--text);
     position: absolute;
@@ -64,10 +64,16 @@
 
   #game-title:hover { opacity: 0.8; }
 
-  #nav-characters {
+  .nav-links {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+  }
+
+  .nav-link {
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 500;
@@ -81,11 +87,10 @@
     background: var(--surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    pointer-events: auto;
     transition: all 0.2s ease;
   }
 
-  #nav-characters:hover {
+  .nav-link:hover {
     background: var(--surface-hover);
     border-color: var(--border-hover);
     color: var(--text);
@@ -289,6 +294,37 @@
     opacity: 1;
   }
 
+  /* Card background scene illustration */
+  .card-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    border-radius: 16px;
+    opacity: 0.15;
+    filter: blur(1.5px) saturate(0.5) brightness(0.6);
+    transition: opacity 0.6s ease, filter 0.6s ease;
+    z-index: 0;
+  }
+
+  .card-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: linear-gradient(to top,
+      rgba(14, 14, 13, 0.95) 0%,
+      rgba(14, 14, 13, 0.6) 40%,
+      rgba(14, 14, 13, 0.4) 70%,
+      rgba(14, 14, 13, 0.55) 100%
+    );
+  }
+
+  .char-card:hover .card-bg {
+    opacity: 0.5;
+    filter: blur(0.5px) saturate(0.7) brightness(0.7);
+  }
+
   /* Holographic shine overlay */
   .card-shine {
     position: absolute;
@@ -420,6 +456,7 @@
     border: 1px solid rgba(212, 165, 116, 0.1);
     border-radius: 14px;
     pointer-events: none;
+    z-index: 3;
   }
 
   .detail-img-frame::after {
@@ -432,6 +469,31 @@
     height: 70%;
     background: radial-gradient(ellipse, rgba(212, 165, 116, 0.06) 0%, transparent 70%);
     pointer-events: none;
+    z-index: 2;
+  }
+
+  .detail-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    border-radius: 20px;
+    opacity: 0.35;
+    filter: blur(1px) saturate(0.6) brightness(0.55);
+    z-index: 0;
+  }
+
+  .detail-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(to top,
+      rgba(14, 14, 13, 0.85) 0%,
+      rgba(14, 14, 13, 0.35) 40%,
+      rgba(14, 14, 13, 0.25) 65%,
+      rgba(14, 14, 13, 0.45) 100%
+    );
   }
 
   .detail-img-frame img {
@@ -564,6 +626,8 @@
   }
 
   .other-card img {
+    position: relative;
+    z-index: 1;
     max-width: 60%;
     max-height: 55%;
     object-fit: contain;
@@ -580,6 +644,7 @@
     bottom: 0;
     left: 0;
     right: 0;
+    z-index: 1;
     padding: 10px 6px;
     text-align: center;
     background: linear-gradient(to top, rgba(14,14,13,0.95), transparent);
@@ -592,6 +657,32 @@
 
   .other-card:hover .other-card-name {
     color: var(--accent);
+  }
+
+  /* Other card background scene */
+  .other-card-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    opacity: 0.12;
+    filter: blur(1px) saturate(0.4) brightness(0.5);
+    transition: opacity 0.4s ease, filter 0.4s ease;
+    z-index: 0;
+  }
+
+  .other-card-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 12px;
+    background: linear-gradient(to top, rgba(14, 14, 13, 0.95) 0%, rgba(14, 14, 13, 0.5) 100%);
+  }
+
+  .other-card:hover .other-card-bg {
+    opacity: 0.3;
+    filter: blur(0px) saturate(0.6) brightness(0.6);
   }
 
   /* ── Play CTA ── */
@@ -674,7 +765,10 @@
 <!-- Navigation -->
 <div id="top-bar">
   <a id="game-title" href="index.html">Chessbuds</a>
-  <a id="nav-characters" href="characters.html">Characters</a>
+  <div class="nav-links">
+    <a class="nav-link" href="characters.html">Characters</a>
+    <a class="nav-link" href="index.html">Play Game</a>
+  </div>
 </div>
 
 <!-- Page Header -->
@@ -695,6 +789,7 @@
   <div class="detail-layout">
     <div class="detail-illustration">
       <div class="detail-img-frame">
+        <div class="detail-bg" id="detail-bg"></div>
         <img id="detail-img" src="" alt="" draggable="false">
       </div>
     </div>
@@ -728,7 +823,8 @@ const characters = {
     pip: 'K',
     epithet: 'The Wise Sovereign of Chessbuds Kingdom',
     img: 'Character Illustrations/King.png',
-    bio: `<p>Proud, regal and wise, King Leo Longmane is the very picture of courtly power and grace. Feared by his enemies and venerated by his subjects, the mighty Leo once united a realm through authority and compassion.</p><p>Heavy is the head that wears the crown, though, and a prolonged reign has taken its toll on the aged king. Still, while his steps may be slower than they once were, King Leo continues to command the front. So long as he stands to fight, the battle is never over.</p>`
+    bg: 'Background Illustrations/King.png',
+    bio: `<p>Proud, regal and wise, King Leo Longmane is the very picture of courtly power and grace. Feared by his enemies and venerated by his subjects, the mighty Leo once united a realm through authority and compassion.</p><p>Yet heavy is the head that wears the crown, and a prolonged reign has taken its toll on the aged monarch. Still, while his steps may be slower than they once were, King Longmane rules with an iron paw. So long as he stands to fight, the battle for Chessbuds Kingdom is never over.</p>`
   },
   queen: {
     name: 'Queen Beatrix the Brave',
@@ -736,6 +832,7 @@ const characters = {
     pip: 'Q',
     epithet: 'The Unmatched Queen Bee',
     img: 'Character Illustrations/Queen.png',
+    bg: 'Background Illustrations/Queen.png',
     bio: `<p>It is said that behind every great man there is an even greater woman. Yet Queen Beatrix stands behind no man — she towers over all, despite her bantam insectile stature. In taverns and pubs all across the kingdom, reverential stories are swapped of her multifaceted battle prowess, one that combines the agility of Big Bishop Bernard with the brute strength of Rook O'Roark.</p><p>There are even those who say (although never when King Leo is listening) that in this land, it is she who truly wears the crown, so to speak. Whether that is true or false, no one can say, but woe to the player who finds him or herself face to face with the Queen Bee, anywhere along the field of play.</p>`
   },
   bishop: {
@@ -744,6 +841,8 @@ const characters = {
     pip: 'B',
     epithet: 'The Right Hand of the King',
     img: 'Character Illustrations/Bishop.png',
+    bg: 'Background Illustrations/Bishop.png',
+    bgPos: '70% center',
     bio: `<p>As the voice of God and the right hand of the king, it's fair to say that Big Bishop Bernard knows a thing or two about playing the angles. One by one, his challengers have attempted to unseat his place in King Leo's affections, and one by one they have been turned back. Many are those who have measured themselves against the Bishop, and come up short.</p><p>Starting every battle in his honored position next to the king, Big Bernard's fast, cutting attacks are capable of tearing armies to shreds in a matter of minutes. Clad in a loose fitting tunic, the Bishop's true speed is hidden until the moment he leaps out from behind the wall of pawns towards the unsuspecting enemy. By that point, it is already too late.</p>`
   },
   knight: {
@@ -752,7 +851,8 @@ const characters = {
     pip: 'N',
     epithet: 'The Laughing Horse',
     img: 'Character Illustrations/Knight.png',
-    bio: `<p>How to predict the actions of a madman? How indeed. As delusional as he is dangerous, "The Laughing Horse" zigzags across the field of battle to the confusion and horror of his opposition, a lunatic grin plastered across his dappled muzzle.</p><p>Yet Nigel isn't "horsing around" when it comes to war. A prodigious swordsman since he was just a pony, the knight is considered the most creative and crafty warrior in Chessbuds Kingdom. So long as he remains on the field, no line of defense, no matter how well structured, is safe.</p>`
+    bg: 'Background Illustrations/Knight.jpg',
+    bio: `<p>How to predict the actions of a madman? How indeed. As delusional as he is dangerous, "The Laughing Horse" zigzags across the battlefield to the confusion and horror of his foes, a lunatic grin plastered on his dappled muzzle.</p><p>Though when it comes to war, Sir Nigel does not horse around. A prodigious swordsman since he was just a pony, Nigel is considered the most creative and crafty warrior in King Longmane's army. As long as the knight remains on the board, no line of defense, no matter how well structured, is safe from his fabled blade.</p>`
   },
   rook: {
     name: "Rook O'Roark",
@@ -760,7 +860,8 @@ const characters = {
     pip: 'R',
     epithet: 'The Straight Shooter',
     img: 'Character Illustrations/Rook.png',
-    bio: `<p>The rook has always been a straight shooter. Built like Hercules but with wings (although he never brings that up: King Leo has a strong opinion on the heretical Greeks, and likes to keep his fire pit well fueled), O'Roark has been known to carry away even the heaviest of foes without even losing his breath.</p><p>When not punching shotgun holes with a single flick of his razor sharp talons, he can be found holding down the perimeter of King Leo's legendary legion. Simple of design, he has no time for the cross-eyed antics of Nigel Knight. He prefers the direct attack, flying forwards, backwards, and sideways with a clean power that has been known to pin down the enemy's resources for entire battles, leaving them defenseless and easily overcome.</p>`
+    bg: 'Background Illustrations/Rook.png',
+    bio: `<p>Rook O'Roark has always been a straight shooter. A war-torn veteran of a thousand battles, his cold, beady eyes have seen it all. Today, the "Dark Bird" has emerged as paragon of power and fear, overseeing the perimeter of King Leo's legendary legion from his castle perch high above.</p><p>Simple and straightforward, Rook has no time for the cross-eyed antics of Nigel the Knight. He prefers the direct attack, flying forwards, backwards, and sideways on strong raven wings that beat the air into submission. Now, O'Roark lives only for one thing\u2014 the clink of gold coins at the end of a fight in which, once again, his beak and talons prove too much for his weaker prey.</p>`
   },
   pawn: {
     name: 'Pawdrick the Pawn',
@@ -768,6 +869,8 @@ const characters = {
     pip: 'P',
     epithet: 'The Valiant Squire',
     img: 'Character Illustrations/Pawn.png',
+    bg: 'Background Illustrations/Pawn.png',
+    bgPos: '70% center',
     bio: `<p>Don't let his size fool you — Pawdrick is as tough as they come! A valiant squire of humble origin, Pawdrick clawed his way out of strenuous serfdom to earn a coveted spot in King Longmane's retinue.</p><p>There are many who dismiss the Pawn, preferring to lather their attention on the larger players who stand behind him. But underestimate Pawdrick at your own peril; his courage and pluck have decided too many battles to count. Scrappy, loyal and steadfast, this little squirrel is honored to serve on the front line of Chessbuds Kingdom.</p>`
   }
 };
@@ -788,6 +891,7 @@ order.forEach((key) => {
   card.innerHTML = `
     <div class="card-tilt">
       <div class="card-face">
+        <div class="card-bg" style="background-image: url('${c.bg}'); background-position: ${c.bgPos || 'center'}"></div>
         <div class="card-frame"></div>
         <div class="card-corner top">
           <span class="corner-role">${c.pip}</span>
@@ -839,6 +943,8 @@ function showDetail(key) {
   const c = characters[key];
   if (!c) return;
 
+  document.getElementById('detail-bg').style.backgroundImage = `url('${c.bg}')`;
+  document.getElementById('detail-bg').style.backgroundPosition = c.bgPos || 'center';
   document.getElementById('detail-img').src = c.img;
   document.getElementById('detail-img').alt = c.name;
   document.getElementById('detail-role').textContent = c.role;
@@ -855,7 +961,7 @@ function showDetail(key) {
     card.className = 'other-card';
     card.onclick = (e) => { e.stopPropagation(); showDetail(k); };
     const shortNames = { king: 'Leo', queen: 'Beatrix', bishop: 'Bernard', knight: 'Nigel', rook: "O'Roark", pawn: 'Pawdrick' };
-    card.innerHTML = `<img src="${o.img}" alt="${o.name}" draggable="false"><div class="other-card-name">${shortNames[k]}</div>`;
+    card.innerHTML = `<div class="other-card-bg" style="background-image: url('${o.bg}'); background-position: ${o.bgPos || 'center'}"></div><img src="${o.img}" alt="${o.name}" draggable="false"><div class="other-card-name">${shortNames[k]}</div>`;
     othersGrid.appendChild(card);
   });
 

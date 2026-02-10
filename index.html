@@ -63,7 +63,7 @@
     font-family: 'Instrument Serif', Georgia, serif;
     font-weight: 400;
     font-style: italic;
-    font-size: 18px;
+    font-size: 22px;
     letter-spacing: 0.02em;
     color: var(--text);
     position: absolute;
@@ -72,10 +72,16 @@
     opacity: 0.5;
   }
 
-  #nav-characters {
+  .nav-links {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: flex;
+    gap: 10px;
+    pointer-events: auto;
+  }
+
+  .nav-link {
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 500;
@@ -89,11 +95,11 @@
     background: var(--surface);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    pointer-events: auto;
     transition: all 0.2s ease;
+    cursor: pointer;
   }
 
-  #nav-characters:hover {
+  .nav-link:hover {
     background: var(--surface-hover);
     border-color: var(--border-hover);
     color: var(--text);
@@ -487,6 +493,85 @@
     background: #fff;
   }
 
+  /* ── New Game confirmation modal ── */
+  #newgame-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(12px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  #newgame-modal.active { display: flex; }
+
+  #newgame-inner {
+    background: rgba(24, 24, 22, 0.96);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 44px 32px;
+    min-width: 340px;
+    text-align: center;
+  }
+
+  #newgame-inner h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 24px;
+    font-style: italic;
+    color: var(--text);
+    margin-bottom: 10px;
+    font-weight: 400;
+  }
+
+  #newgame-inner p {
+    font-size: 14px;
+    color: var(--text-dim);
+    margin-bottom: 28px;
+    line-height: 1.5;
+  }
+
+  .newgame-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .newgame-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: var(--radius);
+    padding: 13px 32px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .newgame-btn.primary {
+    color: var(--bg);
+    background: var(--text);
+  }
+
+  .newgame-btn.primary:hover {
+    background: #fff;
+  }
+
+  .newgame-btn.secondary {
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+  }
+
+  .newgame-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
   /* ── Bot thinking ── */
   #bot-thinking {
     display: none;
@@ -533,7 +618,10 @@
 <div id="top-bar">
   <div id="game-title">Chessbuds</div>
   <div id="status-display">White to move</div>
-  <a id="nav-characters" href="characters.html">Characters</a>
+  <div class="nav-links">
+    <a class="nav-link" href="characters.html">Characters</a>
+    <span class="nav-link" onclick="resetGame()">New Game</span>
+  </div>
 </div>
 
 <div class="captured-panel left">
@@ -557,7 +645,6 @@
 </div>
 
 <div id="bottom-bar">
-  <button class="btn" onclick="resetGame()">New Game</button>
   <button class="btn" onclick="undoMove()">Undo</button>
   <button class="btn" onclick="flipBoard()">Flip Board</button>
   <button class="btn" id="cam-btn" onclick="cycleCamera()">View: Classic</button>
@@ -614,6 +701,17 @@
       </div>
     </div>
     <button class="settings-start" onclick="startGame()">Play</button>
+  </div>
+</div>
+
+<div id="newgame-modal">
+  <div id="newgame-inner">
+    <h3>Game in Progress</h3>
+    <p>Are you sure you want to start a new game? Your current game will be lost.</p>
+    <div class="newgame-actions">
+      <button class="newgame-btn secondary" onclick="dismissNewGameModal()">Keep Playing</button>
+      <button class="newgame-btn primary" onclick="confirmNewGame()">New Game</button>
+    </div>
   </div>
 </div>
 
@@ -2337,6 +2435,24 @@ function updateCaptured() {
 
 // ─── GLOBAL ACTIONS ──────────────────────────────────────────
 window.resetGame = function() {
+  // If game has moves in progress, show confirmation
+  if (engine.moveHistory && engine.moveHistory.length > 0) {
+    document.getElementById('newgame-modal').classList.add('active');
+    return;
+  }
+  // No moves yet, go straight to settings
+  botThinking = false;
+  stopClock();
+  document.getElementById('bot-thinking').classList.remove('active');
+  showSettings();
+};
+
+window.dismissNewGameModal = function() {
+  document.getElementById('newgame-modal').classList.remove('active');
+};
+
+window.confirmNewGame = function() {
+  document.getElementById('newgame-modal').classList.remove('active');
   botThinking = false;
   stopClock();
   document.getElementById('bot-thinking').classList.remove('active');
