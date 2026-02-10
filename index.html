@@ -5,37 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chessbuds</title>
 <link rel="icon" type="image/png" href="King Favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="styles.css">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  :root {
-    --text: #E8E4DF;
-    --text-dim: #9A948C;
-    --text-muted: #5C5850;
-    --bg: #111110;
-    --surface: rgba(20, 20, 18, 0.88);
-    --surface-hover: rgba(40, 38, 34, 0.9);
-    --border: rgba(255, 255, 255, 0.08);
-    --border-hover: rgba(255, 255, 255, 0.16);
-    --accent: #D4A574;
-    --accent-dim: rgba(212, 165, 116, 0.4);
-    --danger: rgba(210, 90, 80, 0.6);
-    --danger-text: #E8A09A;
-    --radius: 10px;
-  }
-
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', -apple-system, sans-serif;
     overflow: hidden;
     height: 100vh;
     width: 100vw;
     cursor: default;
     user-select: none;
-    -webkit-font-smoothing: antialiased;
   }
 
   #canvas-container {
@@ -45,66 +25,6 @@
   }
 
   canvas { display: block; }
-
-  /* ── Top bar ── */
-  #top-bar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 16px 20px;
-    pointer-events: none;
-  }
-
-  #game-title {
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-weight: 400;
-    font-style: italic;
-    font-size: 22px;
-    letter-spacing: 0.02em;
-    color: var(--text);
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    opacity: 0.5;
-  }
-
-  .nav-links {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    pointer-events: auto;
-  }
-
-  .nav-link {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-    text-decoration: none;
-    padding: 9px 20px;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--surface);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transition: all 0.2s ease;
-    cursor: pointer;
-  }
-
-  .nav-link:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-hover);
-    color: var(--text);
-  }
 
   #status-display {
     font-family: 'DM Sans', sans-serif;
@@ -239,29 +159,6 @@
     padding: 20px 28px;
     gap: 8px;
     pointer-events: none;
-  }
-
-  .btn {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--text-dim);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 9px 20px;
-    cursor: pointer;
-    pointer-events: auto;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    transition: all 0.2s ease;
-  }
-
-  .btn:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-hover);
-    color: var(--text);
   }
 
   /* ── Loading ── */
@@ -729,750 +626,14 @@
 }
 </script>
 
+<script src="engine.js"></script>
+<script src="ai.js"></script>
+
 <script type="module">
 import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-
-// ─── CHESS ENGINE ────────────────────────────────────────────
-const PIECE_SYMBOLS = { p:'pawn', n:'knight', b:'bishop', r:'rook', q:'queen', k:'king' };
-const UNICODE_PIECES = {
-  wk:'♔', wq:'♕', wr:'♖', wb:'♗', wn:'♘', wp:'♙',
-  bk:'♚', bq:'♛', br:'♜', bb:'♝', bn:'♞', bp:'♟'
-};
-
-class ChessEngine {
-  constructor() { this.reset(); }
-
-  reset() {
-    // board[row][col], row 0 = rank 8 (black side), row 7 = rank 1 (white side)
-    this.board = this.initialBoard();
-    this.turn = 'w';
-    this.castling = { wk: true, wq: true, bk: true, bq: true };
-    this.enPassantTarget = null; // [row, col]
-    this.moveHistory = [];
-    this.halfMoveClock = 0;
-    this.fullMoveNumber = 1;
-    this.inCheck = false;
-    this.gameOver = false;
-    this.gameResult = '';
-    this.capturedPieces = { w: [], b: [] };
-  }
-
-  initialBoard() {
-    return [
-      [{c:'b',t:'r'},{c:'b',t:'n'},{c:'b',t:'b'},{c:'b',t:'q'},{c:'b',t:'k'},{c:'b',t:'b'},{c:'b',t:'n'},{c:'b',t:'r'}],
-      [{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'},{c:'b',t:'p'}],
-      [null,null,null,null,null,null,null,null],
-      [null,null,null,null,null,null,null,null],
-      [null,null,null,null,null,null,null,null],
-      [null,null,null,null,null,null,null,null],
-      [{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'},{c:'w',t:'p'}],
-      [{c:'w',t:'r'},{c:'w',t:'n'},{c:'w',t:'b'},{c:'w',t:'q'},{c:'w',t:'k'},{c:'w',t:'b'},{c:'w',t:'n'},{c:'w',t:'r'}]
-    ];
-  }
-
-  at(r,c) { return (r>=0&&r<8&&c>=0&&c<8) ? this.board[r][c] : undefined; }
-
-  findKing(color) {
-    for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
-      const p = this.board[r][c];
-      if (p && p.c===color && p.t==='k') return [r,c];
-    }
-    return null;
-  }
-
-  isAttackedBy(r, c, byColor) {
-    // Pawn attacks
-    const pDir = byColor==='w' ? 1 : -1;
-    if (this.at(r+pDir,c-1)?.c===byColor && this.at(r+pDir,c-1)?.t==='p') return true;
-    if (this.at(r+pDir,c+1)?.c===byColor && this.at(r+pDir,c+1)?.t==='p') return true;
-    // Knight attacks
-    for (const [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]]) {
-      const p = this.at(r+dr,c+dc);
-      if (p?.c===byColor && p?.t==='n') return true;
-    }
-    // King attacks
-    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
-      if (dr===0&&dc===0) continue;
-      const p = this.at(r+dr,c+dc);
-      if (p?.c===byColor && p?.t==='k') return true;
-    }
-    // Sliding pieces (bishop/rook/queen)
-    const dirs = [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]];
-    for (const [dr,dc] of dirs) {
-      const isStraight = dr===0||dc===0;
-      const isDiag = !isStraight;
-      for (let i=1;i<8;i++) {
-        const nr=r+dr*i, nc=c+dc*i;
-        if (nr<0||nr>7||nc<0||nc>7) break;
-        const p = this.board[nr][nc];
-        if (p) {
-          if (p.c===byColor) {
-            if (p.t==='q') return true;
-            if (p.t==='r' && isStraight) return true;
-            if (p.t==='b' && isDiag) return true;
-          }
-          break;
-        }
-      }
-    }
-    return false;
-  }
-
-  isInCheck(color) {
-    const king = this.findKing(color);
-    if (!king) return false;
-    return this.isAttackedBy(king[0], king[1], color==='w'?'b':'w');
-  }
-
-  pseudoLegalMoves(r, c) {
-    const piece = this.board[r][c];
-    if (!piece) return [];
-    const moves = [];
-    const color = piece.c;
-    const enemy = color==='w'?'b':'w';
-
-    const addMove = (tr,tc,flags={}) => {
-      if (tr<0||tr>7||tc<0||tc>7) return;
-      const target = this.board[tr][tc];
-      if (target && target.c===color) return;
-      moves.push({fr:r,fc:c,tr,tc,flags});
-    };
-
-    switch(piece.t) {
-      case 'p': {
-        const dir = color==='w' ? -1 : 1;
-        const startRow = color==='w' ? 6 : 1;
-        const promoRow = color==='w' ? 0 : 7;
-        // Forward
-        if (!this.board[r+dir]?.[c]) {
-          if (r+dir===promoRow) moves.push({fr:r,fc:c,tr:r+dir,tc:c,flags:{promotion:true}});
-          else {
-            moves.push({fr:r,fc:c,tr:r+dir,tc:c,flags:{}});
-            if (r===startRow && !this.board[r+2*dir][c]) {
-              moves.push({fr:r,fc:c,tr:r+2*dir,tc:c,flags:{doublePush:true}});
-            }
-          }
-        }
-        // Captures
-        for (const dc of [-1,1]) {
-          const nc = c+dc;
-          if (nc<0||nc>7) continue;
-          const target = this.board[r+dir]?.[nc];
-          if (target && target.c===enemy) {
-            if (r+dir===promoRow) moves.push({fr:r,fc:c,tr:r+dir,tc:nc,flags:{promotion:true}});
-            else moves.push({fr:r,fc:c,tr:r+dir,tc:nc,flags:{}});
-          }
-          // En passant
-          if (this.enPassantTarget && this.enPassantTarget[0]===r+dir && this.enPassantTarget[1]===nc) {
-            moves.push({fr:r,fc:c,tr:r+dir,tc:nc,flags:{enPassant:true}});
-          }
-        }
-        break;
-      }
-      case 'n':
-        for (const [dr,dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])
-          addMove(r+dr,c+dc);
-        break;
-      case 'k':
-        for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
-          if (dr===0&&dc===0) continue;
-          addMove(r+dr,c+dc);
-        }
-        // Castling
-        if (!this.isInCheck(color)) {
-          if (color==='w') {
-            if (this.castling.wk && !this.board[7][5] && !this.board[7][6]
-                && this.board[7][7]?.t==='r' && this.board[7][7]?.c==='w'
-                && !this.isAttackedBy(7,5,'b') && !this.isAttackedBy(7,6,'b'))
-              moves.push({fr:7,fc:4,tr:7,tc:6,flags:{castle:'k'}});
-            if (this.castling.wq && !this.board[7][3] && !this.board[7][2] && !this.board[7][1]
-                && this.board[7][0]?.t==='r' && this.board[7][0]?.c==='w'
-                && !this.isAttackedBy(7,3,'b') && !this.isAttackedBy(7,2,'b'))
-              moves.push({fr:7,fc:4,tr:7,tc:2,flags:{castle:'q'}});
-          } else {
-            if (this.castling.bk && !this.board[0][5] && !this.board[0][6]
-                && this.board[0][7]?.t==='r' && this.board[0][7]?.c==='b'
-                && !this.isAttackedBy(0,5,'w') && !this.isAttackedBy(0,6,'w'))
-              moves.push({fr:0,fc:4,tr:0,tc:6,flags:{castle:'k'}});
-            if (this.castling.bq && !this.board[0][3] && !this.board[0][2] && !this.board[0][1]
-                && this.board[0][0]?.t==='r' && this.board[0][0]?.c==='b'
-                && !this.isAttackedBy(0,3,'w') && !this.isAttackedBy(0,2,'w'))
-              moves.push({fr:0,fc:4,tr:0,tc:2,flags:{castle:'q'}});
-          }
-        }
-        break;
-      case 'b':
-        for (const [dr,dc] of [[-1,-1],[-1,1],[1,-1],[1,1]])
-          for (let i=1;i<8;i++) {
-            const nr=r+dr*i, nc=c+dc*i;
-            if (nr<0||nr>7||nc<0||nc>7) break;
-            const t = this.board[nr][nc];
-            if (t) { if(t.c===enemy) moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}}); break; }
-            moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}});
-          }
-        break;
-      case 'r':
-        for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]])
-          for (let i=1;i<8;i++) {
-            const nr=r+dr*i, nc=c+dc*i;
-            if (nr<0||nr>7||nc<0||nc>7) break;
-            const t = this.board[nr][nc];
-            if (t) { if(t.c===enemy) moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}}); break; }
-            moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}});
-          }
-        break;
-      case 'q':
-        for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]])
-          for (let i=1;i<8;i++) {
-            const nr=r+dr*i, nc=c+dc*i;
-            if (nr<0||nr>7||nc<0||nc>7) break;
-            const t = this.board[nr][nc];
-            if (t) { if(t.c===enemy) moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}}); break; }
-            moves.push({fr:r,fc:c,tr:nr,tc:nc,flags:{}});
-          }
-        break;
-    }
-    return moves;
-  }
-
-  legalMoves(r, c) {
-    const piece = this.board[r][c];
-    if (!piece || piece.c !== this.turn) return [];
-    return this.pseudoLegalMoves(r,c).filter(m => {
-      // Try the move
-      const captured = this.board[m.tr][m.tc];
-      const epCapture = m.flags.enPassant ? this.board[m.fr][m.tc] : null;
-      this.board[m.tr][m.tc] = piece;
-      this.board[m.fr][m.fc] = null;
-      if (m.flags.enPassant) this.board[m.fr][m.tc] = null;
-      const legal = !this.isInCheck(piece.c);
-      // Undo
-      this.board[m.fr][m.fc] = piece;
-      this.board[m.tr][m.tc] = captured;
-      if (m.flags.enPassant) this.board[m.fr][m.tc] = epCapture;
-      return legal;
-    });
-  }
-
-  allLegalMoves(color) {
-    const moves = [];
-    for (let r=0;r<8;r++) for (let c=0;c<8;c++) {
-      const p = this.board[r][c];
-      if (p && p.c===color) moves.push(...this.legalMoves(r,c));
-    }
-    return moves;
-  }
-
-  makeMove(move, promotionType) {
-    const piece = this.board[move.fr][move.fc];
-    const captured = this.board[move.tr][move.tc];
-    const snapshot = {
-      move, piece: {...piece}, captured, castling: {...this.castling},
-      enPassantTarget: this.enPassantTarget ? [...this.enPassantTarget] : null,
-      halfMoveClock: this.halfMoveClock, epCaptured: null
-    };
-
-    // Capture
-    if (captured) {
-      this.capturedPieces[captured.c].push(captured.t);
-    }
-
-    // En passant capture
-    if (move.flags.enPassant) {
-      const epPiece = this.board[move.fr][move.tc];
-      snapshot.epCaptured = epPiece;
-      this.capturedPieces[epPiece.c].push(epPiece.t);
-      this.board[move.fr][move.tc] = null;
-    }
-
-    // Move piece
-    this.board[move.tr][move.tc] = piece;
-    this.board[move.fr][move.fc] = null;
-
-    // Pawn promotion
-    if (move.flags.promotion) {
-      this.board[move.tr][move.tc] = { c: piece.c, t: promotionType || 'q' };
-      snapshot.promoted = true;
-    }
-
-    // Castling move rook
-    if (move.flags.castle) {
-      if (move.flags.castle==='k') {
-        const row = piece.c==='w'?7:0;
-        this.board[row][5] = this.board[row][7];
-        this.board[row][7] = null;
-      } else {
-        const row = piece.c==='w'?7:0;
-        this.board[row][3] = this.board[row][0];
-        this.board[row][0] = null;
-      }
-    }
-
-    // Update castling rights
-    if (piece.t==='k') {
-      if (piece.c==='w') { this.castling.wk=false; this.castling.wq=false; }
-      else { this.castling.bk=false; this.castling.bq=false; }
-    }
-    if (piece.t==='r') {
-      if (move.fr===7&&move.fc===0) this.castling.wq=false;
-      if (move.fr===7&&move.fc===7) this.castling.wk=false;
-      if (move.fr===0&&move.fc===0) this.castling.bq=false;
-      if (move.fr===0&&move.fc===7) this.castling.bk=false;
-    }
-    if (move.tr===7&&move.tc===0) this.castling.wq=false;
-    if (move.tr===7&&move.tc===7) this.castling.wk=false;
-    if (move.tr===0&&move.tc===0) this.castling.bq=false;
-    if (move.tr===0&&move.tc===7) this.castling.bk=false;
-
-    // En passant target
-    this.enPassantTarget = null;
-    if (move.flags.doublePush) {
-      const epRow = (move.fr + move.tr) / 2;
-      this.enPassantTarget = [epRow, move.tc];
-    }
-
-    // Switch turn
-    this.turn = this.turn==='w'?'b':'w';
-    this.moveHistory.push(snapshot);
-
-    // Check game state
-    this.inCheck = this.isInCheck(this.turn);
-    const hasLegalMoves = this.allLegalMoves(this.turn).length > 0;
-    if (!hasLegalMoves) {
-      this.gameOver = true;
-      this.gameResult = this.inCheck
-        ? (this.turn==='w' ? 'Black wins by checkmate' : 'White wins by checkmate')
-        : 'Draw by stalemate';
-    }
-  }
-
-  undoLastMove() {
-    if (this.moveHistory.length === 0) return false;
-    const snap = this.moveHistory.pop();
-    const { move, piece, captured, castling, enPassantTarget, halfMoveClock, epCaptured } = snap;
-
-    this.board[move.fr][move.fc] = { c: piece.c, t: piece.t };
-    this.board[move.tr][move.tc] = captured;
-
-    if (move.flags.enPassant) {
-      this.board[move.fr][move.tc] = epCaptured;
-      const idx = this.capturedPieces[epCaptured.c].lastIndexOf(epCaptured.t);
-      if (idx>=0) this.capturedPieces[epCaptured.c].splice(idx,1);
-    }
-
-    if (captured) {
-      const idx = this.capturedPieces[captured.c].lastIndexOf(captured.t);
-      if (idx>=0) this.capturedPieces[captured.c].splice(idx,1);
-    }
-
-    if (move.flags.castle) {
-      if (move.flags.castle==='k') {
-        const row = piece.c==='w'?7:0;
-        this.board[row][7] = this.board[row][5];
-        this.board[row][5] = null;
-      } else {
-        const row = piece.c==='w'?7:0;
-        this.board[row][0] = this.board[row][3];
-        this.board[row][3] = null;
-      }
-    }
-
-    this.castling = castling;
-    this.enPassantTarget = enPassantTarget;
-    this.halfMoveClock = halfMoveClock;
-    this.turn = piece.c;
-    this.gameOver = false;
-    this.gameResult = '';
-    this.inCheck = this.isInCheck(this.turn);
-    return true;
-  }
-}
-
-// ─── CHESS AI ────────────────────────────────────────────────
-const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
-
-// Piece-square tables (from white's perspective, index 0 = rank 8)
-const PST = {
-  p: [
-    [ 0,  0,  0,  0,  0,  0,  0,  0],
-    [50, 50, 50, 50, 50, 50, 50, 50],
-    [10, 10, 20, 30, 30, 20, 10, 10],
-    [ 5,  5, 10, 25, 25, 10,  5,  5],
-    [ 0,  0,  0, 20, 20,  0,  0,  0],
-    [ 5, -5,-10,  0,  0,-10, -5,  5],
-    [ 5, 10, 10,-20,-20, 10, 10,  5],
-    [ 0,  0,  0,  0,  0,  0,  0,  0]
-  ],
-  n: [
-    [-50,-40,-30,-30,-30,-30,-40,-50],
-    [-40,-20,  0,  0,  0,  0,-20,-40],
-    [-30,  0, 10, 15, 15, 10,  0,-30],
-    [-30,  5, 15, 20, 20, 15,  5,-30],
-    [-30,  0, 15, 20, 20, 15,  0,-30],
-    [-30,  5, 10, 15, 15, 10,  5,-30],
-    [-40,-20,  0,  5,  5,  0,-20,-40],
-    [-50,-40,-30,-30,-30,-30,-40,-50]
-  ],
-  b: [
-    [-20,-10,-10,-10,-10,-10,-10,-20],
-    [-10,  0,  0,  0,  0,  0,  0,-10],
-    [-10,  0, 10, 10, 10, 10,  0,-10],
-    [-10,  5,  5, 10, 10,  5,  5,-10],
-    [-10,  0,  5, 10, 10,  5,  0,-10],
-    [-10, 10,  5, 10, 10,  5, 10,-10],
-    [-10,  5,  0,  0,  0,  0,  5,-10],
-    [-20,-10,-10,-10,-10,-10,-10,-20]
-  ],
-  r: [
-    [ 0,  0,  0,  0,  0,  0,  0,  0],
-    [ 5, 10, 10, 10, 10, 10, 10,  5],
-    [-5,  0,  0,  0,  0,  0,  0, -5],
-    [-5,  0,  0,  0,  0,  0,  0, -5],
-    [-5,  0,  0,  0,  0,  0,  0, -5],
-    [-5,  0,  0,  0,  0,  0,  0, -5],
-    [-5,  0,  0,  0,  0,  0,  0, -5],
-    [ 0,  0,  0,  5,  5,  0,  0,  0]
-  ],
-  q: [
-    [-20,-10,-10, -5, -5,-10,-10,-20],
-    [-10,  0,  0,  0,  0,  0,  0,-10],
-    [-10,  0,  5,  5,  5,  5,  0,-10],
-    [ -5,  0,  5,  5,  5,  5,  0, -5],
-    [  0,  0,  5,  5,  5,  5,  0, -5],
-    [-10,  5,  5,  5,  5,  5,  0,-10],
-    [-10,  0,  5,  0,  0,  0,  0,-10],
-    [-20,-10,-10, -5, -5,-10,-10,-20]
-  ],
-  k: [
-    [-30,-40,-40,-50,-50,-40,-40,-30],
-    [-30,-40,-40,-50,-50,-40,-40,-30],
-    [-30,-40,-40,-50,-50,-40,-40,-30],
-    [-30,-40,-40,-50,-50,-40,-40,-30],
-    [-20,-30,-30,-40,-40,-30,-30,-20],
-    [-10,-20,-20,-20,-20,-20,-20,-10],
-    [ 20, 20,  0,  0,  0,  0, 20, 20],
-    [ 20, 30, 10,  0,  0, 10, 30, 20]
-  ]
-};
-
-// ── Opening Book ──
-const BOOK_FILES = 'abcdefgh';
-const BOOK_RANKS = '87654321';
-function moveToBookStr(move) {
-  return BOOK_FILES[move.fc] + BOOK_RANKS[move.fr] + BOOK_FILES[move.tc] + BOOK_RANKS[move.tr];
-}
-
-const OPENING_BOOK = {
-  // White's first move (weighted: e4 and d4 most common)
-  '': ['e2e4', 'e2e4', 'e2e4', 'd2d4', 'd2d4', 'd2d4', 'c2c4', 'g1f3'],
-
-  // ── After 1.e4 ──
-  'e2e4': ['e7e5', 'e7e5', 'c7c5', 'c7c5', 'e7e6', 'd7d5', 'c7c6', 'g8f6'],
-
-  // 1.e4 e5 (Open Game)
-  'e2e4,e7e5': ['g1f3', 'g1f3', 'g1f3', 'f1c4', 'b1c3'],
-  'e2e4,e7e5,g1f3': ['b8c6', 'b8c6', 'b8c6', 'g8f6', 'd7d6'],
-  'e2e4,e7e5,g1f3,b8c6': ['f1b5', 'f1b5', 'f1c4', 'd2d4', 'b1c3'],
-  'e2e4,e7e5,g1f3,b8c6,f1b5': ['a7a6', 'g8f6', 'f8c5', 'd7d6'],
-  'e2e4,e7e5,g1f3,b8c6,f1c4': ['f8c5', 'g8f6', 'd7d6'],
-  'e2e4,e7e5,g1f3,b8c6,d2d4': ['e5d4'],
-  'e2e4,e7e5,g1f3,g8f6': ['f3e5', 'b1c3', 'd2d4'],
-  'e2e4,e7e5,f1c4': ['g8f6', 'f8c5', 'b8c6'],
-  'e2e4,e7e5,b1c3': ['g8f6', 'b8c6', 'f8c5'],
-
-  // 1.e4 c5 (Sicilian)
-  'e2e4,c7c5': ['g1f3', 'g1f3', 'b1c3', 'c2c3', 'f2f4'],
-  'e2e4,c7c5,g1f3': ['d7d6', 'd7d6', 'b8c6', 'e7e6'],
-  'e2e4,c7c5,g1f3,d7d6': ['d2d4', 'f1b5'],
-  'e2e4,c7c5,g1f3,b8c6': ['d2d4', 'f1b5', 'b1c3'],
-  'e2e4,c7c5,g1f3,e7e6': ['d2d4', 'b1c3', 'c2c3'],
-
-  // 1.e4 e6 (French)
-  'e2e4,e7e6': ['d2d4'],
-  'e2e4,e7e6,d2d4': ['d7d5'],
-  'e2e4,e7e6,d2d4,d7d5': ['b1c3', 'b1d2', 'e4e5', 'e4d5'],
-
-  // 1.e4 c6 (Caro-Kann)
-  'e2e4,c7c6': ['d2d4', 'b1c3', 'g1f3'],
-  'e2e4,c7c6,d2d4': ['d7d5'],
-  'e2e4,c7c6,d2d4,d7d5': ['b1c3', 'b1d2', 'e4e5', 'e4d5'],
-
-  // 1.e4 d5 (Scandinavian)
-  'e2e4,d7d5': ['e4d5'],
-  'e2e4,d7d5,e4d5': ['d8d5', 'g8f6'],
-
-  // 1.e4 Nf6 (Alekhine)
-  'e2e4,g8f6': ['e4e5', 'b1c3', 'd2d3'],
-
-  // ── After 1.d4 ──
-  'd2d4': ['d7d5', 'd7d5', 'g8f6', 'g8f6', 'e7e6', 'f7f5'],
-
-  // 1.d4 d5
-  'd2d4,d7d5': ['c2c4', 'c2c4', 'g1f3', 'c1f4'],
-  'd2d4,d7d5,c2c4': ['e7e6', 'e7e6', 'c7c6', 'd5c4'],
-  'd2d4,d7d5,c2c4,e7e6': ['b1c3', 'g1f3', 'c1g5'],
-  'd2d4,d7d5,c2c4,c7c6': ['g1f3', 'b1c3', 'e2e3'],
-  'd2d4,d7d5,c2c4,d5c4': ['g1f3', 'e2e3', 'e2e4'],
-  'd2d4,d7d5,g1f3': ['g8f6', 'e7e6', 'c7c6'],
-  'd2d4,d7d5,c1f4': ['g8f6', 'e7e6', 'c7c5'],
-
-  // 1.d4 Nf6 (Indian systems)
-  'd2d4,g8f6': ['c2c4', 'c2c4', 'g1f3', 'c1f4'],
-  'd2d4,g8f6,c2c4': ['e7e6', 'e7e6', 'g7g6', 'c7c5'],
-  'd2d4,g8f6,c2c4,e7e6': ['b1c3', 'g1f3', 'g2g3'],
-  'd2d4,g8f6,c2c4,g7g6': ['b1c3', 'g1f3', 'g2g3'],
-  'd2d4,g8f6,g1f3': ['d7d5', 'e7e6', 'g7g6'],
-  'd2d4,g8f6,c1f4': ['d7d5', 'e7e6', 'c7c5'],
-
-  // 1.d4 e6
-  'd2d4,e7e6': ['c2c4', 'g1f3', 'e2e4'],
-
-  // ── After 1.c4 (English) ──
-  'c2c4': ['e7e5', 'g8f6', 'c7c5', 'e7e6'],
-  'c2c4,e7e5': ['b1c3', 'g1f3', 'g2g3'],
-  'c2c4,g8f6': ['b1c3', 'g1f3', 'd2d4'],
-  'c2c4,c7c5': ['g1f3', 'b1c3', 'g2g3'],
-
-  // ── After 1.Nf3 (Réti) ──
-  'g1f3': ['d7d5', 'g8f6', 'c7c5', 'e7e6'],
-  'g1f3,d7d5': ['d2d4', 'c2c4', 'g2g3'],
-  'g1f3,g8f6': ['d2d4', 'c2c4', 'g2g3'],
-  'g1f3,c7c5': ['c2c4', 'e2e4', 'd2d4'],
-};
-
-class ChessAI {
-  constructor(engine) {
-    this.engine = engine;
-    this.nodesSearched = 0;
-  }
-
-  evaluate() {
-    let score = 0;
-    for (let r = 0; r < 8; r++) {
-      for (let c = 0; c < 8; c++) {
-        const p = this.engine.board[r][c];
-        if (!p) continue;
-        const val = PIECE_VALUES[p.t];
-        // PST: for white, use row directly; for black, mirror the row
-        const pstRow = p.c === 'w' ? r : 7 - r;
-        const pst = PST[p.t][pstRow][c];
-        if (p.c === 'w') {
-          score += val + pst;
-        } else {
-          score -= val + pst;
-        }
-      }
-    }
-    return score;
-  }
-
-  // Order moves: captures first (MVV-LVA), then non-captures
-  orderMoves(moves) {
-    return moves.sort((a, b) => {
-      const aCap = this.engine.board[a.tr][a.tc];
-      const bCap = this.engine.board[b.tr][b.tc];
-      const aScore = aCap ? PIECE_VALUES[aCap.t] - PIECE_VALUES[this.engine.board[a.fr][a.fc].t] / 100 : -1000;
-      const bScore = bCap ? PIECE_VALUES[bCap.t] - PIECE_VALUES[this.engine.board[b.fr][b.fc].t] / 100 : -1000;
-      return bScore - aScore;
-    });
-  }
-
-  minimax(depth, alpha, beta, isMaximizing) {
-    this.nodesSearched++;
-
-    if (depth === 0) return this.evaluate();
-
-    const color = isMaximizing ? 'w' : 'b';
-    let allMoves = this.engine.allLegalMoves(color);
-
-    if (allMoves.length === 0) {
-      if (this.engine.isInCheck(color)) {
-        return isMaximizing ? -99999 + (100 - depth) : 99999 - (100 - depth);
-      }
-      return 0; // stalemate
-    }
-
-    allMoves = this.orderMoves(allMoves);
-
-    if (isMaximizing) {
-      let maxEval = -Infinity;
-      for (const move of allMoves) {
-        // Make move
-        const piece = this.engine.board[move.fr][move.fc];
-        const captured = this.engine.board[move.tr][move.tc];
-        const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-        const oldCastling = { ...this.engine.castling };
-        const oldEP = this.engine.enPassantTarget;
-        const oldTurn = this.engine.turn;
-
-        this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-        this.engine.board[move.fr][move.fc] = null;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-          else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-        }
-        // Update state
-        if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-        if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-        this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-        this.engine.turn = 'b';
-
-        const eval_ = this.minimax(depth - 1, alpha, beta, false);
-
-        // Undo move
-        this.engine.board[move.fr][move.fc] = piece;
-        this.engine.board[move.tr][move.tc] = captured;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-          else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-        }
-        this.engine.castling = oldCastling;
-        this.engine.enPassantTarget = oldEP;
-        this.engine.turn = oldTurn;
-
-        maxEval = Math.max(maxEval, eval_);
-        alpha = Math.max(alpha, eval_);
-        if (beta <= alpha) break;
-      }
-      return maxEval;
-    } else {
-      let minEval = Infinity;
-      for (const move of allMoves) {
-        const piece = this.engine.board[move.fr][move.fc];
-        const captured = this.engine.board[move.tr][move.tc];
-        const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-        const oldCastling = { ...this.engine.castling };
-        const oldEP = this.engine.enPassantTarget;
-        const oldTurn = this.engine.turn;
-
-        this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-        this.engine.board[move.fr][move.fc] = null;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-          else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-        }
-        if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-        if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-        this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-        this.engine.turn = 'w';
-
-        const eval_ = this.minimax(depth - 1, alpha, beta, true);
-
-        this.engine.board[move.fr][move.fc] = piece;
-        this.engine.board[move.tr][move.tc] = captured;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-          else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-        }
-        this.engine.castling = oldCastling;
-        this.engine.enPassantTarget = oldEP;
-        this.engine.turn = oldTurn;
-
-        minEval = Math.min(minEval, eval_);
-        beta = Math.min(beta, eval_);
-        if (beta <= alpha) break;
-      }
-      return minEval;
-    }
-  }
-
-  getBookMove(botColor) {
-    const history = this.engine.moveHistory;
-    if (!history) return null;
-    const key = history.map(snap => moveToBookStr(snap.move)).join(',');
-    const candidates = OPENING_BOOK[key];
-    if (!candidates || candidates.length === 0) return null;
-
-    // Pick a random book move
-    const bookStr = candidates[Math.floor(Math.random() * candidates.length)];
-    const fc = BOOK_FILES.indexOf(bookStr[0]);
-    const fr = BOOK_RANKS.indexOf(bookStr[1]);
-    const tc = BOOK_FILES.indexOf(bookStr[2]);
-    const tr = BOOK_RANKS.indexOf(bookStr[3]);
-
-    // Find matching legal move
-    const legalMoves = this.engine.allLegalMoves(botColor);
-    return legalMoves.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc) || null;
-  }
-
-  getBestMove(depth, botColor) {
-    // Check opening book first
-    const bookMove = this.getBookMove(botColor);
-    if (bookMove) {
-      console.log('AI playing book move');
-      return bookMove;
-    }
-
-    this.nodesSearched = 0;
-    const isMaximizing = botColor === 'w';
-    let allMoves = this.engine.allLegalMoves(botColor);
-    if (allMoves.length === 0) return null;
-
-    allMoves = this.orderMoves(allMoves);
-
-    const evaluated = [];
-
-    for (const move of allMoves) {
-      const piece = this.engine.board[move.fr][move.fc];
-      const captured = this.engine.board[move.tr][move.tc];
-      const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-      const oldCastling = { ...this.engine.castling };
-      const oldEP = this.engine.enPassantTarget;
-      const oldTurn = this.engine.turn;
-
-      this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-      this.engine.board[move.fr][move.fc] = null;
-      if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-      if (move.flags.castle) {
-        const row = piece.c === 'w' ? 7 : 0;
-        if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-        else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-      }
-      if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-      if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-      this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-      this.engine.turn = isMaximizing ? 'b' : 'w';
-
-      const eval_ = this.minimax(depth - 1, -Infinity, Infinity, !isMaximizing);
-
-      this.engine.board[move.fr][move.fc] = piece;
-      this.engine.board[move.tr][move.tc] = captured;
-      if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-      if (move.flags.castle) {
-        const row = piece.c === 'w' ? 7 : 0;
-        if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-        else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-      }
-      this.engine.castling = oldCastling;
-      this.engine.enPassantTarget = oldEP;
-      this.engine.turn = oldTurn;
-
-      evaluated.push({ move, eval: eval_ });
-    }
-
-    // Sort best first
-    evaluated.sort((a, b) => isMaximizing ? b.eval - a.eval : a.eval - b.eval);
-
-    // Pick randomly among moves within 15 centipawns of the best
-    const bestEval = evaluated[0].eval;
-    const topMoves = evaluated.filter(m => Math.abs(m.eval - bestEval) <= 15);
-    const chosen = topMoves[Math.floor(Math.random() * topMoves.length)];
-
-    console.log(`AI searched ${this.nodesSearched} nodes, eval: ${chosen.eval}, top moves: ${topMoves.length}`);
-    return chosen.move;
-  }
-}
 
 // ─── GAME SETTINGS ───────────────────────────────────────────
 let gameSettings = { opponent: 'bot', difficulty: 2, playerColor: 'w', timeControl: 0 };
@@ -1550,7 +711,6 @@ function tickClock() {
 
 function flagTimeout(color) {
   stopClock();
-  const loser = color === 'w' ? 'White' : 'Black';
   const winner = color === 'w' ? 'Black' : 'White';
   engine.gameOver = true;
   engine.gameResult = `${winner} wins on time`;
@@ -1692,6 +852,9 @@ let boardFlipped = false;
 let pieceGeometries = {};
 let pendingPromotion = null;
 
+// Pre-created highlight geometries (reused each click)
+let selectionGeo, moveCircleGeo, captureRingGeo;
+
 // Materials — will be fully set up after environment map is created
 let whiteMat, blackMat;
 const lightSquareMat = new THREE.MeshStandardMaterial({
@@ -1719,9 +882,6 @@ let ambientLight, keyLight, fillLight, rimLight, topLight, groundMesh, bgSphere;
 let pmremGen;
 
 const ENVIRONMENTS = [
-  // ── CASTLE HALL ─────────────────────────────────────────────
-  // Modest medieval stone hall. Warm candlelight, quiet and intimate.
-  // Dark wood board on a stone table. Understated and classic.
   {
     name: 'Castle Hall',
     bg: [0x12100E, 0x1A1510, 0x0E0B08],
@@ -1743,9 +903,6 @@ const ENVIRONMENTS = [
       border: { color: 0x2E1E10, roughness: 0.35, metalness: 0.05 }
     }
   },
-  // ── THRONE ROOM ─────────────────────────────────────────────
-  // Royal opulence. Chandelier golds, crimson tapestries, polished
-  // marble board with a gilded gold frame.
   {
     name: 'Throne Room',
     bg: [0x1A0C0A, 0x2A1410, 0x140808],
@@ -1767,9 +924,6 @@ const ENVIRONMENTS = [
       border: { color: 0xB8862C, roughness: 0.25, metalness: 0.6 }
     }
   },
-  // ── MARBLE HALL ──────────────────────────────────────────────
-  // Bright classical hall with polished marble floors, tall windows,
-  // and clean white light. Elegant and open.
   {
     name: 'Marble Court',
     bg: [0xD0CCC4, 0xB8B4AC, 0x908880],
@@ -1791,9 +945,6 @@ const ENVIRONMENTS = [
       border: { color: 0xE8E2DA, roughness: 0.15, metalness: 0.1 }
     }
   },
-  // ── WAR CAMP ────────────────────────────────────────────────
-  // Outdoor military encampment at dusk. Low campfire light,
-  // smoky haze, last traces of twilight above.
   {
     name: 'War Camp',
     bg: [0x1A1008, 0x332010, 0x110A04],
@@ -1815,9 +966,6 @@ const ENVIRONMENTS = [
       border: { color: 0x3A2818, roughness: 0.7, metalness: 0.0 }
     }
   },
-  // ── FROZEN KEEP ─────────────────────────────────────────────
-  // Icy castle battlement under moonlight. Cold blues and silvers,
-  // frost on stone. Dark and stark.
   {
     name: 'Frozen Keep',
     bg: [0x0A1020, 0x142038, 0x081018],
@@ -1839,9 +987,6 @@ const ENVIRONMENTS = [
       border: { color: 0x2A3040, roughness: 0.35, metalness: 0.15 }
     }
   },
-  // ── DRAGON'S LAIR ───────────────────────────────────────────
-  // Deep underground cavern. Lava and embers glow from below,
-  // darkness above. Obsidian board with metallic sheen.
   {
     name: "Dragon's Lair",
     bg: [0x0A0404, 0x1A0808, 0x2A0A00],
@@ -1898,8 +1043,8 @@ function createEnvMap(panelColors) {
 }
 
 function createBackgroundSphere(colors) {
-  // Gradient sky sphere
-  const geo = new THREE.SphereGeometry(60, 64, 32);
+  // Gradient sky sphere — reduced segments (solid color gradient doesn't need high detail)
+  const geo = new THREE.SphereGeometry(60, 32, 16);
   const count = geo.getAttribute('position').count;
   const colAttr = new Float32Array(count * 3);
   const topC = new THREE.Color(colors[0]);
@@ -1929,8 +1074,12 @@ function createBackgroundSphere(colors) {
 function applyEnvironment(index) {
   const env = ENVIRONMENTS[index];
 
-  // Background sphere
-  if (bgSphere) scene.remove(bgSphere);
+  // Dispose old background sphere before creating new one (memory leak fix)
+  if (bgSphere) {
+    scene.remove(bgSphere);
+    bgSphere.geometry.dispose();
+    bgSphere.material.dispose();
+  }
   bgSphere = createBackgroundSphere(env.bg);
   scene.add(bgSphere);
 
@@ -2041,8 +1190,8 @@ function init() {
 
   keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
   keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width = 4096;
-  keyLight.shadow.mapSize.height = 4096;
+  keyLight.shadow.mapSize.width = 2048;
+  keyLight.shadow.mapSize.height = 2048;
   keyLight.shadow.camera.near = 1;
   keyLight.shadow.camera.far = 50;
   keyLight.shadow.camera.left = -15;
@@ -2071,6 +1220,11 @@ function init() {
   groundMesh.position.y = -0.5;
   groundMesh.receiveShadow = true;
   scene.add(groundMesh);
+
+  // Pre-create highlight geometries (reused on every click)
+  selectionGeo = new THREE.BoxGeometry(SQ * 0.95, 0.18, SQ * 0.95);
+  moveCircleGeo = new THREE.CircleGeometry(SQ * 0.15, 24);
+  captureRingGeo = new THREE.RingGeometry(SQ * 0.35, SQ * 0.45, 32);
 
   // Apply initial environment
   applyEnvironment(0);
@@ -2344,54 +1498,84 @@ async function loadPieces() {
 const TYPE_TO_NAME = { p:'pawn', n:'knight', b:'bishop', r:'rook', q:'queen', k:'king' };
 
 function syncPiecesToBoard() {
-  // Remove all current pieces
-  while (piecesGroup.children.length) piecesGroup.remove(piecesGroup.children[0]);
-
+  // Diff-based approach: only add/remove/move meshes that changed
+  const desired = new Map();
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const piece = engine.board[r][c];
-      if (!piece) continue;
-      const geo = pieceGeometries[TYPE_TO_NAME[piece.t]];
-      if (!geo) continue;
-      const mat = piece.c === 'w' ? whiteMat : blackMat;
-      const mesh = new THREE.Mesh(geo, mat);
-      const pos = boardToWorld(r, c);
-      mesh.position.set(pos.x, 0.05, pos.z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-
-      // Rotate pieces so both sides face each other (flip when board is flipped)
-      const faceDir = piece.c === 'w' ? Math.PI : 0;
-      mesh.rotation.y = boardFlipped ? faceDir + Math.PI : faceDir;
-
-      mesh.userData = { type: 'piece', row: r, col: c, pieceData: piece };
-      piecesGroup.add(mesh);
+      if (piece) desired.set(`${r},${c}`, piece);
     }
+  }
+
+  // Map existing meshes by position
+  const existing = new Map();
+  for (const mesh of piecesGroup.children) {
+    existing.set(`${mesh.userData.row},${mesh.userData.col}`, mesh);
+  }
+
+  // Remove meshes that are wrong or no longer needed
+  const toRemove = [];
+  for (const [key, mesh] of existing) {
+    const piece = desired.get(key);
+    if (!piece || piece.c !== mesh.userData.pieceData.c || piece.t !== mesh.userData.pieceData.t) {
+      toRemove.push(mesh);
+    }
+  }
+  toRemove.forEach(m => {
+    piecesGroup.remove(m);
+    existing.delete(`${m.userData.row},${m.userData.col}`);
+  });
+
+  // Add missing pieces and update positions of existing ones
+  for (const [key, piece] of desired) {
+    const [r, c] = key.split(',').map(Number);
+    const pos = boardToWorld(r, c);
+    const faceDir = piece.c === 'w' ? Math.PI : 0;
+    const rotation = boardFlipped ? faceDir + Math.PI : faceDir;
+
+    if (existing.has(key)) {
+      // Already correct piece — just update position (for flip board)
+      const mesh = existing.get(key);
+      mesh.position.set(pos.x, 0.05, pos.z);
+      mesh.rotation.y = rotation;
+      continue;
+    }
+
+    // Create new mesh
+    const geo = pieceGeometries[TYPE_TO_NAME[piece.t]];
+    if (!geo) continue;
+    const mat = piece.c === 'w' ? whiteMat : blackMat;
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(pos.x, 0.05, pos.z);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.rotation.y = rotation;
+    mesh.userData = { type: 'piece', row: r, col: c, pieceData: piece };
+    piecesGroup.add(mesh);
   }
 }
 
 // ─── HIGHLIGHTS ──────────────────────────────────────────────
 function clearHighlights() {
-  while (highlightGroup.children.length) highlightGroup.remove(highlightGroup.children[0]);
+  while (highlightGroup.children.length) {
+    highlightGroup.remove(highlightGroup.children[0]);
+  }
 }
 
 function showHighlights() {
   clearHighlights();
   if (selectedSquare === null) return;
 
-  // Selected square highlight
-  const selGeo = new THREE.BoxGeometry(SQ * 0.95, 0.18, SQ * 0.95);
-  const selMesh = new THREE.Mesh(selGeo, highlightMat);
+  // Selected square highlight (reuse pre-created geometry)
+  const selMesh = new THREE.Mesh(selectionGeo, highlightMat);
   const selPos = boardToWorld(selectedSquare[0], selectedSquare[1]);
   selMesh.position.set(selPos.x, 0.02, selPos.z);
   highlightGroup.add(selMesh);
 
-  // Legal move highlights
+  // Legal move highlights (reuse pre-created geometries)
   for (const move of legalMovesForSelected) {
     const isCapture = engine.board[move.tr][move.tc] !== null || move.flags.enPassant;
-    const hGeo = isCapture
-      ? new THREE.RingGeometry(SQ*0.35, SQ*0.45, 32)
-      : new THREE.CircleGeometry(SQ*0.15, 24);
+    const hGeo = isCapture ? captureRingGeo : moveCircleGeo;
     const hMat = isCapture ? captureHighlightMat : moveHighlightMat;
     const hMesh = new THREE.Mesh(hGeo, hMat);
     hMesh.rotation.x = -Math.PI/2;
@@ -2705,9 +1889,6 @@ function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500) {
         break;
       }
     }
-
-    // For en passant, remove the captured pawn
-    // (we detect this by checking if the moving piece is heading to an empty diagonal - handled after sync)
 
     const anim = {
       mesh,
