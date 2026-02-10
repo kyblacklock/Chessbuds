@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chess</title>
+<title>Chessbuds</title>
+<link rel="icon" type="image/png" href="King Favicon.png">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap');
 
@@ -1157,6 +1158,91 @@ const PST = {
   ]
 };
 
+// ── Opening Book ──
+const BOOK_FILES = 'abcdefgh';
+const BOOK_RANKS = '87654321';
+function moveToBookStr(move) {
+  return BOOK_FILES[move.fc] + BOOK_RANKS[move.fr] + BOOK_FILES[move.tc] + BOOK_RANKS[move.tr];
+}
+
+const OPENING_BOOK = {
+  // White's first move (weighted: e4 and d4 most common)
+  '': ['e2e4', 'e2e4', 'e2e4', 'd2d4', 'd2d4', 'd2d4', 'c2c4', 'g1f3'],
+
+  // ── After 1.e4 ──
+  'e2e4': ['e7e5', 'e7e5', 'c7c5', 'c7c5', 'e7e6', 'd7d5', 'c7c6', 'g8f6'],
+
+  // 1.e4 e5 (Open Game)
+  'e2e4,e7e5': ['g1f3', 'g1f3', 'g1f3', 'f1c4', 'b1c3'],
+  'e2e4,e7e5,g1f3': ['b8c6', 'b8c6', 'b8c6', 'g8f6', 'd7d6'],
+  'e2e4,e7e5,g1f3,b8c6': ['f1b5', 'f1b5', 'f1c4', 'd2d4', 'b1c3'],
+  'e2e4,e7e5,g1f3,b8c6,f1b5': ['a7a6', 'g8f6', 'f8c5', 'd7d6'],
+  'e2e4,e7e5,g1f3,b8c6,f1c4': ['f8c5', 'g8f6', 'd7d6'],
+  'e2e4,e7e5,g1f3,b8c6,d2d4': ['e5d4'],
+  'e2e4,e7e5,g1f3,g8f6': ['f3e5', 'b1c3', 'd2d4'],
+  'e2e4,e7e5,f1c4': ['g8f6', 'f8c5', 'b8c6'],
+  'e2e4,e7e5,b1c3': ['g8f6', 'b8c6', 'f8c5'],
+
+  // 1.e4 c5 (Sicilian)
+  'e2e4,c7c5': ['g1f3', 'g1f3', 'b1c3', 'c2c3', 'f2f4'],
+  'e2e4,c7c5,g1f3': ['d7d6', 'd7d6', 'b8c6', 'e7e6'],
+  'e2e4,c7c5,g1f3,d7d6': ['d2d4', 'f1b5'],
+  'e2e4,c7c5,g1f3,b8c6': ['d2d4', 'f1b5', 'b1c3'],
+  'e2e4,c7c5,g1f3,e7e6': ['d2d4', 'b1c3', 'c2c3'],
+
+  // 1.e4 e6 (French)
+  'e2e4,e7e6': ['d2d4'],
+  'e2e4,e7e6,d2d4': ['d7d5'],
+  'e2e4,e7e6,d2d4,d7d5': ['b1c3', 'b1d2', 'e4e5', 'e4d5'],
+
+  // 1.e4 c6 (Caro-Kann)
+  'e2e4,c7c6': ['d2d4', 'b1c3', 'g1f3'],
+  'e2e4,c7c6,d2d4': ['d7d5'],
+  'e2e4,c7c6,d2d4,d7d5': ['b1c3', 'b1d2', 'e4e5', 'e4d5'],
+
+  // 1.e4 d5 (Scandinavian)
+  'e2e4,d7d5': ['e4d5'],
+  'e2e4,d7d5,e4d5': ['d8d5', 'g8f6'],
+
+  // 1.e4 Nf6 (Alekhine)
+  'e2e4,g8f6': ['e4e5', 'b1c3', 'd2d3'],
+
+  // ── After 1.d4 ──
+  'd2d4': ['d7d5', 'd7d5', 'g8f6', 'g8f6', 'e7e6', 'f7f5'],
+
+  // 1.d4 d5
+  'd2d4,d7d5': ['c2c4', 'c2c4', 'g1f3', 'c1f4'],
+  'd2d4,d7d5,c2c4': ['e7e6', 'e7e6', 'c7c6', 'd5c4'],
+  'd2d4,d7d5,c2c4,e7e6': ['b1c3', 'g1f3', 'c1g5'],
+  'd2d4,d7d5,c2c4,c7c6': ['g1f3', 'b1c3', 'e2e3'],
+  'd2d4,d7d5,c2c4,d5c4': ['g1f3', 'e2e3', 'e2e4'],
+  'd2d4,d7d5,g1f3': ['g8f6', 'e7e6', 'c7c6'],
+  'd2d4,d7d5,c1f4': ['g8f6', 'e7e6', 'c7c5'],
+
+  // 1.d4 Nf6 (Indian systems)
+  'd2d4,g8f6': ['c2c4', 'c2c4', 'g1f3', 'c1f4'],
+  'd2d4,g8f6,c2c4': ['e7e6', 'e7e6', 'g7g6', 'c7c5'],
+  'd2d4,g8f6,c2c4,e7e6': ['b1c3', 'g1f3', 'g2g3'],
+  'd2d4,g8f6,c2c4,g7g6': ['b1c3', 'g1f3', 'g2g3'],
+  'd2d4,g8f6,g1f3': ['d7d5', 'e7e6', 'g7g6'],
+  'd2d4,g8f6,c1f4': ['d7d5', 'e7e6', 'c7c5'],
+
+  // 1.d4 e6
+  'd2d4,e7e6': ['c2c4', 'g1f3', 'e2e4'],
+
+  // ── After 1.c4 (English) ──
+  'c2c4': ['e7e5', 'g8f6', 'c7c5', 'e7e6'],
+  'c2c4,e7e5': ['b1c3', 'g1f3', 'g2g3'],
+  'c2c4,g8f6': ['b1c3', 'g1f3', 'd2d4'],
+  'c2c4,c7c5': ['g1f3', 'b1c3', 'g2g3'],
+
+  // ── After 1.Nf3 (Réti) ──
+  'g1f3': ['d7d5', 'g8f6', 'c7c5', 'e7e6'],
+  'g1f3,d7d5': ['d2d4', 'c2c4', 'g2g3'],
+  'g1f3,g8f6': ['d2d4', 'c2c4', 'g2g3'],
+  'g1f3,c7c5': ['c2c4', 'e2e4', 'd2d4'],
+};
+
 class ChessAI {
   constructor(engine) {
     this.engine = engine;
@@ -1301,7 +1387,33 @@ class ChessAI {
     }
   }
 
+  getBookMove(botColor) {
+    const history = this.engine.moveHistory;
+    if (!history) return null;
+    const key = history.map(snap => moveToBookStr(snap.move)).join(',');
+    const candidates = OPENING_BOOK[key];
+    if (!candidates || candidates.length === 0) return null;
+
+    // Pick a random book move
+    const bookStr = candidates[Math.floor(Math.random() * candidates.length)];
+    const fc = BOOK_FILES.indexOf(bookStr[0]);
+    const fr = BOOK_RANKS.indexOf(bookStr[1]);
+    const tc = BOOK_FILES.indexOf(bookStr[2]);
+    const tr = BOOK_RANKS.indexOf(bookStr[3]);
+
+    // Find matching legal move
+    const legalMoves = this.engine.allLegalMoves(botColor);
+    return legalMoves.find(m => m.fr === fr && m.fc === fc && m.tr === tr && m.tc === tc) || null;
+  }
+
   getBestMove(depth, botColor) {
+    // Check opening book first
+    const bookMove = this.getBookMove(botColor);
+    if (bookMove) {
+      console.log('AI playing book move');
+      return bookMove;
+    }
+
     this.nodesSearched = 0;
     const isMaximizing = botColor === 'w';
     let allMoves = this.engine.allLegalMoves(botColor);
@@ -1309,8 +1421,7 @@ class ChessAI {
 
     allMoves = this.orderMoves(allMoves);
 
-    let bestMove = allMoves[0];
-    let bestEval = isMaximizing ? -Infinity : Infinity;
+    const evaluated = [];
 
     for (const move of allMoves) {
       const piece = this.engine.board[move.fr][move.fc];
@@ -1347,14 +1458,19 @@ class ChessAI {
       this.engine.enPassantTarget = oldEP;
       this.engine.turn = oldTurn;
 
-      if (isMaximizing ? eval_ > bestEval : eval_ < bestEval) {
-        bestEval = eval_;
-        bestMove = move;
-      }
+      evaluated.push({ move, eval: eval_ });
     }
 
-    console.log(`AI searched ${this.nodesSearched} nodes, eval: ${bestEval}`);
-    return bestMove;
+    // Sort best first
+    evaluated.sort((a, b) => isMaximizing ? b.eval - a.eval : a.eval - b.eval);
+
+    // Pick randomly among moves within 15 centipawns of the best
+    const bestEval = evaluated[0].eval;
+    const topMoves = evaluated.filter(m => Math.abs(m.eval - bestEval) <= 15);
+    const chosen = topMoves[Math.floor(Math.random() * topMoves.length)];
+
+    console.log(`AI searched ${this.nodesSearched} nodes, eval: ${chosen.eval}, top moves: ${topMoves.length}`);
+    return chosen.move;
   }
 }
 
@@ -2244,8 +2360,9 @@ function syncPiecesToBoard() {
       mesh.castShadow = true;
       mesh.receiveShadow = true;
 
-      // Rotate pieces so both sides face each other
-      mesh.rotation.y = piece.c === 'w' ? Math.PI : 0;
+      // Rotate pieces so both sides face each other (flip when board is flipped)
+      const faceDir = piece.c === 'w' ? Math.PI : 0;
+      mesh.rotation.y = boardFlipped ? faceDir + Math.PI : faceDir;
 
       mesh.userData = { type: 'piece', row: r, col: c, pieceData: piece };
       piecesGroup.add(mesh);
