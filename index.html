@@ -816,7 +816,7 @@ function scheduleBotMove() {
       await new Promise(r => setTimeout(r, 300));
 
       // Animate the bot's piece moving
-      await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 600);
+      await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 600, move.flags);
 
       // For promotions, bot always picks queen
       if (move.flags.promotion) {
@@ -1676,7 +1676,7 @@ async function executeMove(move) {
   clearHighlights();
 
   // Animate the piece sliding
-  await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 400);
+  await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 400, move.flags);
 
   engine.makeMove(move);
   syncPiecesToBoard();
@@ -1695,7 +1695,7 @@ window.doPromotion = async function(type) {
   legalMovesForSelected = [];
   clearHighlights();
 
-  await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 400);
+  await animatePieceMove(move.fr, move.fc, move.tr, move.tc, 400, move.flags);
 
   engine.makeMove(move, type);
   syncPiecesToBoard();
@@ -1744,6 +1744,7 @@ window.resetGame = function() {
   // No moves yet, go straight to settings
   botThinking = false;
   stopClock();
+  cleanupShatterAnimations();
   document.getElementById('bot-thinking').classList.remove('active');
   showSettings();
 };
@@ -1756,6 +1757,7 @@ window.confirmNewGame = function() {
   document.getElementById('newgame-modal').classList.remove('active');
   botThinking = false;
   stopClock();
+  cleanupShatterAnimations();
   document.getElementById('bot-thinking').classList.remove('active');
   showSettings();
 };
@@ -1776,6 +1778,7 @@ window.undoMove = function() {
   selectedSquare = null;
   legalMovesForSelected = [];
   clearHighlights();
+  cleanupShatterAnimations();
   syncPiecesToBoard();
   updateStatus();
   updateCaptured();
@@ -1857,6 +1860,7 @@ function animateCamera(preset) {
 
 // ─── MOVE ANIMATION ──────────────────────────────────────────
 let activeAnimations = [];
+let activeShatterAnimations = [];
 let animating = false;
 
 function easeInOutCubic(t) {
@@ -1865,7 +1869,7 @@ function easeInOutCubic(t) {
 
 // Animate a piece mesh from its current position to a target.
 // Returns a Promise that resolves when animation completes.
-function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500) {
+function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500, moveFlags = {}) {
   return new Promise(resolve => {
     // Find the mesh at fromRow, fromCol
     let mesh = null;
@@ -1882,10 +1886,15 @@ function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500) {
     const endPos = new THREE.Vector3(targetWorldPos.x, 0.05, targetWorldPos.z);
     const startTime = performance.now();
 
-    // Remove captured piece at target immediately (slight anticipation)
+    // Shatter captured piece (en passant: captured pawn is at fromRow, toCol)
+    const captureRow = moveFlags.enPassant ? fromRow : toRow;
+    const captureCol = toCol;
     for (const child of [...piecesGroup.children]) {
-      if (child !== mesh && child.userData.row === toRow && child.userData.col === toCol) {
-        piecesGroup.remove(child);
+      if (child !== mesh && child.userData.row === captureRow && child.userData.col === captureCol) {
+        const attackDir = new THREE.Vector3(
+          endPos.x - startPos.x, 0, endPos.z - startPos.z
+        ).normalize();
+        shatterPiece(child, attackDir);
         break;
       }
     }
@@ -1940,6 +1949,188 @@ function updateAnimations() {
   }
 }
 
+// ─── SHATTER EFFECT ─────────────────────────────────────────
+function buildShatterFragments(geometry, numClusters = 35) {
+  const posAttr = geometry.getAttribute('position');
+  const idx = geometry.getIndex();
+  const triCount = idx ? idx.count / 3 : posAttr.count / 3;
+
+  // Compute centroid sort key per triangle
+  const triData = [];
+  for (let i = 0; i < triCount; i++) {
+    const i0 = idx ? idx.getX(i * 3) : i * 3;
+    const i1 = idx ? idx.getX(i * 3 + 1) : i * 3 + 1;
+    const i2 = idx ? idx.getX(i * 3 + 2) : i * 3 + 2;
+    const cx = (posAttr.getX(i0) + posAttr.getX(i1) + posAttr.getX(i2)) / 3;
+    const cy = (posAttr.getY(i0) + posAttr.getY(i1) + posAttr.getY(i2)) / 3;
+    const cz = (posAttr.getZ(i0) + posAttr.getZ(i1) + posAttr.getZ(i2)) / 3;
+    triData.push({ i0, i1, i2, cx, cy, cz, sortKey: cy * 1000 + cx * 31.4159 + cz * 7.389 });
+  }
+
+  // Sort spatially for coherent clusters
+  triData.sort((a, b) => a.sortKey - b.sortKey);
+
+  const trisPerCluster = Math.ceil(triCount / numClusters);
+  const clusters = [];
+
+  for (let c = 0; c < numClusters; c++) {
+    const start = c * trisPerCluster;
+    const end = Math.min(start + trisPerCluster, triCount);
+    if (start >= triCount) break;
+    const count = end - start;
+
+    const positions = new Float32Array(count * 9);
+    let centX = 0, centY = 0, centZ = 0;
+
+    for (let t = 0; t < count; t++) {
+      const tri = triData[start + t];
+      const verts = [tri.i0, tri.i1, tri.i2];
+      for (let v = 0; v < 3; v++) {
+        positions[t * 9 + v * 3]     = posAttr.getX(verts[v]);
+        positions[t * 9 + v * 3 + 1] = posAttr.getY(verts[v]);
+        positions[t * 9 + v * 3 + 2] = posAttr.getZ(verts[v]);
+      }
+      centX += tri.cx;
+      centY += tri.cy;
+      centZ += tri.cz;
+    }
+
+    centX /= count;
+    centY /= count;
+    centZ /= count;
+
+    const fragGeo = new THREE.BufferGeometry();
+    fragGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    fragGeo.computeVertexNormals();
+
+    clusters.push({ geometry: fragGeo, centroid: new THREE.Vector3(centX, centY, centZ) });
+  }
+
+  return clusters;
+}
+
+function shatterPiece(capturedMesh, attackDirection) {
+  return new Promise(resolve => {
+    const geometry = capturedMesh.geometry;
+    const worldPos = capturedMesh.position.clone();
+    const rotY = capturedMesh.rotation.y;
+    const isWhite = capturedMesh.userData.pieceData.c === 'w';
+    const sourceMat = isWhite ? whiteMat : blackMat;
+
+    piecesGroup.remove(capturedMesh);
+
+    const clusters = buildShatterFragments(geometry, 35);
+    const fragments = [];
+
+    for (const cluster of clusters) {
+      const mat = new THREE.MeshStandardMaterial({
+        color: sourceMat.color.clone(),
+        roughness: 0.4,
+        metalness: 0.0,
+        transparent: true,
+        opacity: 1.0,
+        flatShading: true,
+      });
+
+      const mesh = new THREE.Mesh(cluster.geometry, mat);
+      mesh.position.copy(worldPos);
+      mesh.rotation.y = rotY;
+
+      const outward = cluster.centroid.clone().normalize();
+      const speed = 3 + Math.random() * 5;
+      const upBias = 2 + Math.random() * 3;
+
+      const velocity = new THREE.Vector3(
+        outward.x * speed + (attackDirection ? attackDirection.x * 2 : 0),
+        upBias + outward.y * speed * 0.5,
+        outward.z * speed + (attackDirection ? attackDirection.z * 2 : 0)
+      );
+
+      const angularVel = new THREE.Vector3(
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 8,
+        (Math.random() - 0.5) * 8
+      );
+
+      scene.add(mesh);
+      fragments.push({ mesh, velocity, angularVel });
+    }
+
+    activeShatterAnimations.push({
+      fragments,
+      startTime: performance.now(),
+      duration: 1200,
+      gravity: -15,
+      lastTime: performance.now(),
+      resolve
+    });
+  });
+}
+
+function updateShatterAnimations() {
+  if (activeShatterAnimations.length === 0) return;
+
+  const now = performance.now();
+  const done = [];
+
+  for (let i = activeShatterAnimations.length - 1; i >= 0; i--) {
+    const shatter = activeShatterAnimations[i];
+    const dt = (now - shatter.lastTime) / 1000;
+    shatter.lastTime = now;
+    const elapsed = now - shatter.startTime;
+    const t = Math.min(elapsed / shatter.duration, 1.0);
+
+    const fadeStart = 0.4;
+    const opacity = t < fadeStart ? 1.0 : 1.0 - ((t - fadeStart) / (1.0 - fadeStart));
+
+    for (const frag of shatter.fragments) {
+      frag.velocity.y += shatter.gravity * dt;
+
+      frag.mesh.position.x += frag.velocity.x * dt;
+      frag.mesh.position.y += frag.velocity.y * dt;
+      frag.mesh.position.z += frag.velocity.z * dt;
+
+      if (frag.mesh.position.y < 0.02) {
+        frag.mesh.position.y = 0.02;
+        frag.velocity.y = Math.abs(frag.velocity.y) * 0.3;
+        frag.velocity.x *= 0.7;
+        frag.velocity.z *= 0.7;
+        frag.angularVel.multiplyScalar(0.5);
+      }
+
+      frag.mesh.rotation.x += frag.angularVel.x * dt;
+      frag.mesh.rotation.y += frag.angularVel.y * dt;
+      frag.mesh.rotation.z += frag.angularVel.z * dt;
+
+      frag.mesh.material.opacity = Math.max(0, opacity);
+    }
+
+    if (t >= 1.0) done.push(i);
+  }
+
+  for (const i of done) {
+    const shatter = activeShatterAnimations.splice(i, 1)[0];
+    for (const frag of shatter.fragments) {
+      scene.remove(frag.mesh);
+      frag.mesh.geometry.dispose();
+      frag.mesh.material.dispose();
+    }
+    shatter.resolve();
+  }
+}
+
+function cleanupShatterAnimations() {
+  for (const shatter of activeShatterAnimations) {
+    for (const frag of shatter.fragments) {
+      scene.remove(frag.mesh);
+      frag.mesh.geometry.dispose();
+      frag.mesh.material.dispose();
+    }
+    shatter.resolve();
+  }
+  activeShatterAnimations = [];
+}
+
 // ─── RESIZE / ANIMATE ────────────────────────────────────────
 function onResize() {
   camera.aspect = window.innerWidth / window.innerHeight;
@@ -1950,6 +2141,7 @@ function onResize() {
 function animate() {
   requestAnimationFrame(animate);
   updateAnimations();
+  updateShatterAnimations();
   controls.update();
   renderer.render(scene, camera);
 }
