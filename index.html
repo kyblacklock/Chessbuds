@@ -1886,18 +1886,20 @@ function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500, moveFl
     const endPos = new THREE.Vector3(targetWorldPos.x, 0.05, targetWorldPos.z);
     const startTime = performance.now();
 
-    // Shatter captured piece (en passant: captured pawn is at fromRow, toCol)
+    // Find captured piece to shatter on impact (en passant: captured pawn is at fromRow, toCol)
     const captureRow = moveFlags.enPassant ? fromRow : toRow;
     const captureCol = toCol;
+    let capturedMesh = null;
     for (const child of [...piecesGroup.children]) {
       if (child !== mesh && child.userData.row === captureRow && child.userData.col === captureCol) {
-        const attackDir = new THREE.Vector3(
-          endPos.x - startPos.x, 0, endPos.z - startPos.z
-        ).normalize();
-        shatterPiece(child, attackDir);
+        capturedMesh = child;
         break;
       }
     }
+
+    const attackDir = capturedMesh ? new THREE.Vector3(
+      endPos.x - startPos.x, 0, endPos.z - startPos.z
+    ).normalize() : null;
 
     const anim = {
       mesh,
@@ -1905,7 +1907,10 @@ function animatePieceMove(fromRow, fromCol, toRow, toCol, duration = 500, moveFl
       endPos,
       startTime,
       duration,
-      resolve
+      resolve,
+      capturedMesh,
+      attackDir,
+      shatterTriggered: false
     };
     activeAnimations.push(anim);
     animating = true;
@@ -1932,6 +1937,12 @@ function updateAnimations() {
     const arc = Math.sin(t * Math.PI) * arcHeight;
     a.mesh.position.y = 0.05 + arc;
 
+    // Trigger shatter on impact (~70% through the move)
+    if (!a.shatterTriggered && a.capturedMesh && t >= 0.7) {
+      a.shatterTriggered = true;
+      shatterPiece(a.capturedMesh, a.attackDir);
+    }
+
     if (t >= 1.0) {
       a.mesh.position.copy(a.endPos);
       a.mesh.position.y = 0.05;
@@ -1950,14 +1961,18 @@ function updateAnimations() {
 }
 
 // ─── SHATTER EFFECT ─────────────────────────────────────────
-function buildShatterFragments(geometry, numClusters = 35) {
+function buildShatterFragments(geometry, numClusters = 25) {
   const posAttr = geometry.getAttribute('position');
   const idx = geometry.getIndex();
-  const triCount = idx ? idx.count / 3 : posAttr.count / 3;
+  const totalTris = idx ? idx.count / 3 : posAttr.count / 3;
 
-  // Compute centroid sort key per triangle
+  // Sample every Nth triangle to keep fragment creation fast (~1000 triangles total)
+  const maxTris = 1000;
+  const stride = Math.max(1, Math.floor(totalTris / maxTris));
+
+  // Collect sampled triangles with centroid sort keys
   const triData = [];
-  for (let i = 0; i < triCount; i++) {
+  for (let i = 0; i < totalTris; i += stride) {
     const i0 = idx ? idx.getX(i * 3) : i * 3;
     const i1 = idx ? idx.getX(i * 3 + 1) : i * 3 + 1;
     const i2 = idx ? idx.getX(i * 3 + 2) : i * 3 + 2;
@@ -1970,13 +1985,14 @@ function buildShatterFragments(geometry, numClusters = 35) {
   // Sort spatially for coherent clusters
   triData.sort((a, b) => a.sortKey - b.sortKey);
 
-  const trisPerCluster = Math.ceil(triCount / numClusters);
+  const sampledCount = triData.length;
+  const trisPerCluster = Math.ceil(sampledCount / numClusters);
   const clusters = [];
 
   for (let c = 0; c < numClusters; c++) {
     const start = c * trisPerCluster;
-    const end = Math.min(start + trisPerCluster, triCount);
-    if (start >= triCount) break;
+    const end = Math.min(start + trisPerCluster, sampledCount);
+    if (start >= sampledCount) break;
     const count = end - start;
 
     const positions = new Float32Array(count * 9);
@@ -2019,7 +2035,7 @@ function shatterPiece(capturedMesh, attackDirection) {
 
     piecesGroup.remove(capturedMesh);
 
-    const clusters = buildShatterFragments(geometry, 35);
+    const clusters = buildShatterFragments(geometry, 25);
     const fragments = [];
 
     for (const cluster of clusters) {
