@@ -634,6 +634,7 @@ import * as THREE from 'three';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+import { Sky } from 'three/addons/objects/Sky.js';
 
 // ─── GAME SETTINGS ───────────────────────────────────────────
 let gameSettings = { opponent: 'bot', difficulty: 2, playerColor: 'w', timeControl: 0 };
@@ -878,13 +879,12 @@ const borderMat = new THREE.MeshStandardMaterial({
 
 // ─── ENVIRONMENT SYSTEM ──────────────────────────────────────
 let currentEnvIndex = 0;
-let ambientLight, keyLight, fillLight, rimLight, topLight, groundMesh, bgSphere;
+let ambientLight, keyLight, fillLight, rimLight, topLight, groundMesh, skyMesh, sunVector;
 let pmremGen;
 
 const ENVIRONMENTS = [
   {
     name: 'Castle Hall',
-    bg: [0x12100E, 0x1A1510, 0x0E0B08],
     fog: [0x12100E, 0.009],
     ground: { color: 0x2A2520, roughness: 0.95, metalness: 0.0 },
     ambient: [0xFFE8CC, 0.4],
@@ -892,11 +892,8 @@ const ENVIRONMENTS = [
     fill: [0x8899BB, 0.45, [-8, 10, -8]],
     rim: [0xFFAA55, 0.5, [-3, 6, 12]],
     top: [0xFFDDBB, 0.3],
-    exposure: 1.2,
-    envPanels: {
-      top: 0x3A3028, front: 0x887055, back: 0x44382A,
-      sides: 0x554838, floor: 0x1A1510
-    },
+    exposure: 1.0,
+    sky: { turbidity: 10, rayleigh: 0.5, mieCoefficient: 0.005, mieDirectionalG: 0.8, elevation: 0.5, azimuth: 180 },
     board: {
       light: { color: 0xD4C4A8, roughness: 0.55, metalness: 0.0 },
       dark: { color: 0x4A3320, roughness: 0.6, metalness: 0.0 },
@@ -905,7 +902,6 @@ const ENVIRONMENTS = [
   },
   {
     name: 'Throne Room',
-    bg: [0x1A0C0A, 0x2A1410, 0x140808],
     fog: [0x1A0C0A, 0.006],
     ground: { color: 0x1A100C, roughness: 0.4, metalness: 0.15 },
     ambient: [0xFFEEDD, 0.55],
@@ -914,10 +910,7 @@ const ENVIRONMENTS = [
     rim: [0xFFCC77, 0.6, [-6, 8, 14]],
     top: [0xFFEECC, 0.5],
     exposure: 1.45,
-    envPanels: {
-      top: 0xFFCC66, front: 0xAA4433, back: 0x882222,
-      sides: 0x994433, floor: 0x2A1A0A
-    },
+    sky: { turbidity: 6, rayleigh: 1.5, mieCoefficient: 0.01, mieDirectionalG: 0.9, elevation: 0.5, azimuth: 180 },
     board: {
       light: { color: 0xF0E8D8, roughness: 0.3, metalness: 0.05 },
       dark: { color: 0x5C1A1A, roughness: 0.35, metalness: 0.05 },
@@ -926,19 +919,15 @@ const ENVIRONMENTS = [
   },
   {
     name: 'Marble Court',
-    bg: [0xD0CCC4, 0xB8B4AC, 0x908880],
     fog: [0xC0BCB4, 0.005],
     ground: { color: 0xA8A498, roughness: 0.35, metalness: 0.1 },
-    ambient: [0xFFFFFF, 0.9],
-    key: [0xFFFFFF, 1.8, [10, 24, 10]],
-    fill: [0xE8E4E0, 1.0, [-10, 14, -8]],
-    rim: [0xFFFFEE, 0.5, [-6, 6, 12]],
-    top: [0xFFFFFF, 0.6],
-    exposure: 1.4,
-    envPanels: {
-      top: 0xFFFFFF, front: 0xDDDDCC, back: 0xCCCCBB,
-      sides: 0xCCCCBB, floor: 0xAAAAAA
-    },
+    ambient: [0xFFFFFF, 0.6],
+    key: [0xFFFFFF, 1.4, [10, 24, 10]],
+    fill: [0xE8E4E0, 0.7, [-10, 14, -8]],
+    rim: [0xFFFFEE, 0.4, [-6, 6, 12]],
+    top: [0xFFFFFF, 0.4],
+    exposure: 1.0,
+    sky: { turbidity: 4, rayleigh: 1.5, mieCoefficient: 0.005, mieDirectionalG: 0.7, elevation: 25, azimuth: 180 },
     board: {
       light: { color: 0xF5F0EA, roughness: 0.18, metalness: 0.08 },
       dark: { color: 0xB0A898, roughness: 0.22, metalness: 0.06 },
@@ -947,7 +936,6 @@ const ENVIRONMENTS = [
   },
   {
     name: 'War Camp',
-    bg: [0x1A1008, 0x332010, 0x110A04],
     fog: [0x201208, 0.007],
     ground: { color: 0x1A1208, roughness: 0.98, metalness: 0.0 },
     ambient: [0xFFCCAA, 0.35],
@@ -956,10 +944,7 @@ const ENVIRONMENTS = [
     rim: [0xFF6622, 0.8, [4, 3, 10]],
     top: [0x556688, 0.25],
     exposure: 1.4,
-    envPanels: {
-      top: 0x2A3044, front: 0xAA5522, back: 0x221A10,
-      sides: 0x443322, floor: 0x110800
-    },
+    sky: { turbidity: 15, rayleigh: 0.5, mieCoefficient: 0.02, mieDirectionalG: 0.85, elevation: 1.5, azimuth: 200 },
     board: {
       light: { color: 0xC8B090, roughness: 0.75, metalness: 0.0 },
       dark: { color: 0x5A4030, roughness: 0.8, metalness: 0.0 },
@@ -968,7 +953,6 @@ const ENVIRONMENTS = [
   },
   {
     name: 'Frozen Keep',
-    bg: [0x0A1020, 0x142038, 0x081018],
     fog: [0x0C1420, 0.008],
     ground: { color: 0x1A2030, roughness: 0.7, metalness: 0.1 },
     ambient: [0xAABBDD, 0.45],
@@ -977,10 +961,7 @@ const ENVIRONMENTS = [
     rim: [0x99BBEE, 0.5, [8, 4, 12]],
     top: [0xBBCCEE, 0.35],
     exposure: 1.15,
-    envPanels: {
-      top: 0x1A2244, front: 0x3A4466, back: 0x2A3355,
-      sides: 0x334466, floor: 0x0A0E18
-    },
+    sky: { turbidity: 1, rayleigh: 4, mieCoefficient: 0.003, mieDirectionalG: 0.7, elevation: 5, azimuth: 200 },
     board: {
       light: { color: 0xC8D0DD, roughness: 0.4, metalness: 0.1 },
       dark: { color: 0x3A4455, roughness: 0.5, metalness: 0.1 },
@@ -989,7 +970,6 @@ const ENVIRONMENTS = [
   },
   {
     name: "Dragon's Lair",
-    bg: [0x0A0404, 0x1A0808, 0x2A0A00],
     fog: [0x100404, 0.010],
     ground: { color: 0x1A0A04, roughness: 0.85, metalness: 0.05 },
     ambient: [0xFF8866, 0.3],
@@ -998,10 +978,7 @@ const ENVIRONMENTS = [
     rim: [0xFF2200, 0.9, [6, 1, 10]],
     top: [0x332222, 0.2],
     exposure: 1.5,
-    envPanels: {
-      top: 0x110808, front: 0xAA3300, back: 0x881100,
-      sides: 0x661100, floor: 0xCC4400
-    },
+    sky: { turbidity: 20, rayleigh: 0.2, mieCoefficient: 0.05, mieDirectionalG: 0.95, elevation: -2, azimuth: 180 },
     board: {
       light: { color: 0x4A4040, roughness: 0.5, metalness: 0.15 },
       dark: { color: 0x1A1010, roughness: 0.45, metalness: 0.2 },
@@ -1010,78 +987,36 @@ const ENVIRONMENTS = [
   }
 ];
 
-function createEnvMap(panelColors) {
-  const envScene = new THREE.Scene();
-  const panelGeo = new THREE.PlaneGeometry(100, 100);
-  const S = THREE.DoubleSide;
+function configureSky(skyObj, skyConfig) {
+  const uniforms = skyObj.material.uniforms;
+  uniforms['turbidity'].value = skyConfig.turbidity;
+  uniforms['rayleigh'].value = skyConfig.rayleigh;
+  uniforms['mieCoefficient'].value = skyConfig.mieCoefficient;
+  uniforms['mieDirectionalG'].value = skyConfig.mieDirectionalG;
 
-  const topPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.top, side: S }));
-  topPanel.position.set(0, 40, 0); topPanel.rotation.x = Math.PI / 2;
-  envScene.add(topPanel);
-
-  const frontPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.front, side: S }));
-  frontPanel.position.set(0, 0, -40);
-  envScene.add(frontPanel);
-
-  const backPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.back, side: S }));
-  backPanel.position.set(0, 0, 40);
-  envScene.add(backPanel);
-
-  const leftPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.sides, side: S }));
-  leftPanel.position.set(-40, 0, 0); leftPanel.rotation.y = Math.PI / 2;
-  envScene.add(leftPanel);
-  const rightPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.sides, side: S }));
-  rightPanel.position.set(40, 0, 0); rightPanel.rotation.y = Math.PI / 2;
-  envScene.add(rightPanel);
-
-  const floorPanel = new THREE.Mesh(panelGeo, new THREE.MeshBasicMaterial({ color: panelColors.floor, side: S }));
-  floorPanel.position.set(0, -40, 0); floorPanel.rotation.x = Math.PI / 2;
-  envScene.add(floorPanel);
-
-  const envMap = pmremGen.fromScene(envScene, 0.04).texture;
-  return envMap;
+  const phi = THREE.MathUtils.degToRad(90 - skyConfig.elevation);
+  const theta = THREE.MathUtils.degToRad(skyConfig.azimuth);
+  sunVector.setFromSphericalCoords(1, phi, theta);
+  uniforms['sunPosition'].value.copy(sunVector);
 }
 
-function createBackgroundSphere(colors) {
-  // Gradient sky sphere — reduced segments (solid color gradient doesn't need high detail)
-  const geo = new THREE.SphereGeometry(60, 32, 16);
-  const count = geo.getAttribute('position').count;
-  const colAttr = new Float32Array(count * 3);
-  const topC = new THREE.Color(colors[0]);
-  const midC = new THREE.Color(colors[1]);
-  const botC = new THREE.Color(colors[2]);
-  const posArr = geo.getAttribute('position').array;
-
-  for (let i = 0; i < count; i++) {
-    const y = posArr[i * 3 + 1];
-    const t = (y / 60 + 1) / 2; // 0 at bottom, 1 at top
-    const c = new THREE.Color();
-    if (t > 0.5) {
-      c.lerpColors(midC, topC, (t - 0.5) * 2);
-    } else {
-      c.lerpColors(botC, midC, t * 2);
-    }
-    colAttr[i * 3] = c.r;
-    colAttr[i * 3 + 1] = c.g;
-    colAttr[i * 3 + 2] = c.b;
-  }
-  geo.setAttribute('color', new THREE.BufferAttribute(colAttr, 3));
-
-  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false });
-  return new THREE.Mesh(geo, mat);
+function createEnvMapFromSky(skyConfig) {
+  const envScene = new THREE.Scene();
+  const envSky = new Sky();
+  envSky.scale.setScalar(100);
+  configureSky(envSky, skyConfig);
+  envScene.add(envSky);
+  const envMap = pmremGen.fromScene(envScene, 0, 0.1, 100).texture;
+  envSky.geometry.dispose();
+  envSky.material.dispose();
+  return envMap;
 }
 
 function applyEnvironment(index) {
   const env = ENVIRONMENTS[index];
 
-  // Dispose old background sphere before creating new one (memory leak fix)
-  if (bgSphere) {
-    scene.remove(bgSphere);
-    bgSphere.geometry.dispose();
-    bgSphere.material.dispose();
-  }
-  bgSphere = createBackgroundSphere(env.bg);
-  scene.add(bgSphere);
+  // Configure sky
+  configureSky(skyMesh, env.sky);
 
   // Fog
   scene.fog = new THREE.FogExp2(env.fog[0], env.fog[1]);
@@ -1125,8 +1060,8 @@ function applyEnvironment(index) {
 
   renderer.toneMappingExposure = env.exposure;
 
-  // Environment map
-  const envMap = createEnvMap(env.envPanels);
+  // Environment map from sky
+  const envMap = createEnvMapFromSky(env.sky);
   scene.environment = envMap;
   whiteMat.envMap = envMap;
   blackMat.envMap = envMap;
@@ -1211,6 +1146,12 @@ function init() {
   topLight = new THREE.DirectionalLight(0xffffff, 0.4);
   topLight.position.set(0, 30, 0);
   scene.add(topLight);
+
+  // Procedural sky
+  skyMesh = new Sky();
+  skyMesh.scale.setScalar(100);
+  sunVector = new THREE.Vector3();
+  scene.add(skyMesh);
 
   // Ground plane
   const groundGeo = new THREE.PlaneGeometry(80, 80);
