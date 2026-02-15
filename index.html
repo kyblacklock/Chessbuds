@@ -140,10 +140,16 @@
   }
 
   .captured-piece {
-    font-size: 20px;
     text-align: center;
-    line-height: 1.4;
-    opacity: 0.5;
+    line-height: 1;
+  }
+
+  .captured-piece img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    opacity: 0.7;
+    display: block;
   }
 
   /* ── Bottom controls ── */
@@ -409,41 +415,41 @@
     background: rgba(24, 24, 22, 0.96);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 36px 44px 32px;
-    min-width: 340px;
+    padding: 32px 36px 28px;
+    width: 280px;
     text-align: center;
   }
 
   #newgame-inner h3 {
     font-family: 'Instrument Serif', Georgia, serif;
-    font-size: 24px;
+    font-size: 22px;
     font-style: italic;
     color: var(--text);
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     font-weight: 400;
   }
 
   #newgame-inner p {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-dim);
-    margin-bottom: 28px;
+    margin-bottom: 24px;
     line-height: 1.5;
   }
 
   .newgame-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .newgame-btn {
     font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: 0.04em;
     border: none;
     border-radius: var(--radius);
-    padding: 13px 32px;
+    padding: 11px 24px;
     cursor: pointer;
     width: 100%;
     transition: all 0.2s ease;
@@ -502,6 +508,499 @@
     content: '';
     animation: dots 1.5s infinite steps(1);
   }
+
+  /* ── Profile Node ── */
+  .profile-node {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .profile-node-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .profile-node:hover .profile-node-icon {
+    opacity: 1;
+  }
+
+  .profile-node:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  .profile-node.active {
+    border-color: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  /* ── Profile Drawer Overlay ── */
+  #profile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  #profile-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ── Profile Drawer ── */
+  #profile-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4001;
+    width: 340px;
+    max-width: 90vw;
+    background: rgba(24, 24, 22, 0.96);
+    border-left: 1px solid var(--border);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow-y: auto;
+    padding: 0 28px 40px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #profile-drawer.open {
+    transform: translateX(0);
+  }
+
+  #profile-drawer::-webkit-scrollbar { width: 4px; }
+  #profile-drawer::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 2px;
+  }
+
+  .profile-drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0 20px;
+    position: sticky;
+    top: 0;
+    background: rgba(24, 24, 22, 0.96);
+    z-index: 1;
+  }
+
+  .profile-drawer-header h3 {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 24px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .profile-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .profile-close:hover {
+    color: var(--text);
+    border-color: var(--border-hover);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .profile-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 0 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .profile-avatar-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: rgba(212, 165, 116, 0.1);
+    border: 1px solid var(--accent-dim);
+    object-fit: contain;
+    padding: 4px;
+    margin-bottom: 12px;
+  }
+
+  .profile-avatar-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .profile-section {
+    margin-bottom: 28px;
+  }
+
+  .profile-section-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+
+  .profile-record {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 0;
+  }
+
+  .profile-record-item {
+    flex: 1;
+    text-align: center;
+  }
+
+  .profile-record-value {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 28px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .profile-record-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .profile-record-divider {
+    width: 1px;
+    height: 36px;
+    background: var(--border);
+  }
+
+  .profile-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .profile-stat-row:last-child { border-bottom: none; }
+
+  .profile-stat-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+  }
+
+  .profile-stat-value {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .profile-recent {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-empty {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
+    font-style: italic;
+  }
+
+  .profile-game-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+  }
+
+  .profile-game-result {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .profile-game-result.win { background: #7CAA68; }
+  .profile-game-result.loss { background: #CC5544; }
+  .profile-game-result.draw { background: var(--text-muted); }
+  .profile-game-result.pvp { background: var(--accent); }
+
+  .profile-game-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .profile-game-detail {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-game-meta {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .profile-game-moves {
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .profile-cta-section {
+    margin-top: auto;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .profile-cta-text {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .profile-cta-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 24px;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  /* ── Game Over Modal ── */
+  #gameover-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    align-items: center;
+    justify-content: center;
+  }
+
+  #gameover-modal.active { display: flex; }
+
+  #gameover-inner {
+    background: rgba(24, 24, 22, 0.96);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px 36px 28px;
+    width: 280px;
+    text-align: center;
+    animation: modalIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes modalIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  #gameover-headline {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  #gameover-headline.win { color: var(--accent); }
+  #gameover-headline.loss { color: var(--text); }
+  #gameover-headline.draw { color: var(--text-dim); }
+
+  #gameover-detail {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+    line-height: 1.5;
+  }
+
+  #gameover-moves {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .gameover-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .gameover-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    border: none;
+    border-radius: var(--radius);
+    padding: 11px 24px;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .gameover-btn.primary {
+    color: var(--bg);
+    background: var(--text);
+  }
+
+  .gameover-btn.primary:hover {
+    background: #fff;
+  }
+
+  .gameover-btn.secondary {
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+  }
+
+  .gameover-btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+    color: var(--text);
+  }
+
+  /* ── Nudge Toast ── */
+  #nudge-toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    max-width: 400px;
+  }
+
+  #nudge-toast.visible {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .toast-text {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+    line-height: 1.4;
+  }
+
+  .toast-text strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .toast-dismiss {
+    font-size: 16px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+  }
+
+  .toast-dismiss:hover {
+    color: var(--text);
+  }
 </style>
 </head>
 <body>
@@ -519,6 +1018,9 @@
   <div class="nav-links">
     <a class="nav-link" href="characters.html">Characters</a>
     <span class="nav-link" onclick="resetGame()">New Game</span>
+    <button class="profile-node" id="profile-node" onclick="toggleProfileDrawer()">
+      <img class="profile-node-icon" src="King Favicon.png" alt="Profile">
+    </button>
   </div>
 </div>
 
@@ -613,9 +1115,92 @@
   </div>
 </div>
 
+<div id="gameover-modal">
+  <div id="gameover-inner">
+    <div id="gameover-headline">Victory</div>
+    <div id="gameover-detail"></div>
+    <div id="gameover-moves"></div>
+    <div class="gameover-actions">
+      <button class="gameover-btn primary" onclick="gameoverNewGame()">New Game</button>
+      <button class="gameover-btn secondary" onclick="gameoverViewStats()">View Stats</button>
+    </div>
+  </div>
+</div>
+
 <div id="bot-thinking">Thinking</div>
 
 <div id="canvas-container"></div>
+
+<div id="profile-overlay"></div>
+
+<div id="profile-drawer">
+  <div class="profile-drawer-header">
+    <h3>Your Record</h3>
+    <button class="profile-close" onclick="closeProfileDrawer()">&times;</button>
+  </div>
+
+  <div class="profile-avatar">
+    <img class="profile-avatar-img" src="King Favicon.png" alt="Profile">
+    <div class="profile-avatar-name">Guest Player</div>
+  </div>
+
+  <div class="profile-section">
+    <div class="profile-section-label">Record</div>
+    <div class="profile-record">
+      <div class="profile-record-item">
+        <div class="profile-record-value" id="profile-wins">0</div>
+        <div class="profile-record-label">Wins</div>
+      </div>
+      <div class="profile-record-divider"></div>
+      <div class="profile-record-item">
+        <div class="profile-record-value" id="profile-draws">0</div>
+        <div class="profile-record-label">Draws</div>
+      </div>
+      <div class="profile-record-divider"></div>
+      <div class="profile-record-item">
+        <div class="profile-record-value" id="profile-losses">0</div>
+        <div class="profile-record-label">Losses</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <div class="profile-section-label">Stats</div>
+    <div class="profile-stat-row">
+      <span class="profile-stat-name">Games Played</span>
+      <span class="profile-stat-value" id="profile-games">0</span>
+    </div>
+    <div class="profile-stat-row">
+      <span class="profile-stat-name">Win Rate</span>
+      <span class="profile-stat-value" id="profile-winrate">--</span>
+    </div>
+    <div class="profile-stat-row">
+      <span class="profile-stat-name">Current Streak</span>
+      <span class="profile-stat-value" id="profile-streak">0</span>
+    </div>
+    <div class="profile-stat-row">
+      <span class="profile-stat-name">Best Streak</span>
+      <span class="profile-stat-value" id="profile-best-streak">0</span>
+    </div>
+  </div>
+
+  <div class="profile-section">
+    <div class="profile-section-label">Recent Games</div>
+    <div class="profile-recent" id="profile-recent">
+      <div class="profile-empty">No games yet</div>
+    </div>
+  </div>
+
+  <div class="profile-section profile-cta-section">
+    <div class="profile-cta-text">Sign in to save your stats across devices</div>
+    <button class="profile-cta-btn" disabled>Coming Soon</button>
+  </div>
+</div>
+
+<div id="nudge-toast">
+  <span class="toast-text"></span>
+  <button class="toast-dismiss" onclick="dismissNudgeToast()">&times;</button>
+</div>
 
 <script type="importmap">
 {
@@ -628,6 +1213,7 @@
 
 <script src="engine.js"></script>
 <script src="ai.js"></script>
+<script src="profile.js"></script>
 
 <script type="module">
 import * as THREE from 'three';
@@ -640,6 +1226,7 @@ import { Sky } from 'three/addons/objects/Sky.js';
 let gameSettings = { opponent: 'bot', difficulty: 2, playerColor: 'w', timeControl: 0 };
 let botAI = null;
 let botThinking = false;
+let gameResultRecorded = false;
 
 // ─── CHESS CLOCK ─────────────────────────────────────────────
 let clockWhite = 0;   // remaining seconds (float)
@@ -751,6 +1338,7 @@ window.selectOpt = function(group, btn) {
 };
 
 window.showSettings = function() {
+  preselectAllSettings();
   document.getElementById('settings-modal').classList.add('active');
 };
 
@@ -761,6 +1349,8 @@ window.startGame = function() {
   const timeControl = parseInt(document.querySelector('#opt-time .selected').dataset.val);
 
   gameSettings = { opponent, difficulty, playerColor, timeControl };
+  gameResultRecorded = false;
+  savePreferences({ opponent, difficulty, playerColor, timeControl });
 
   engine.reset();
   selectedSquare = null;
@@ -1075,6 +1665,7 @@ function applyEnvironment(index) {
 window.cycleEnvironment = function() {
   currentEnvIndex = (currentEnvIndex + 1) % ENVIRONMENTS.length;
   applyEnvironment(currentEnvIndex);
+  savePreferences({ environment: currentEnvIndex });
 };
 
 function init() {
@@ -1167,8 +1758,12 @@ function init() {
   moveCircleGeo = new THREE.CircleGeometry(SQ * 0.15, 24);
   captureRingGeo = new THREE.RingGeometry(SQ * 0.35, SQ * 0.45, 32);
 
-  // Apply initial environment
-  applyEnvironment(0);
+  // Apply saved or default environment
+  const savedPrefs = loadPreferences();
+  if (savedPrefs.environment > 0 && savedPrefs.environment < ENVIRONMENTS.length) {
+    currentEnvIndex = savedPrefs.environment;
+  }
+  applyEnvironment(currentEnvIndex);
 
   boardGroup = new THREE.Group();
   piecesGroup = new THREE.Group();
@@ -1184,6 +1779,17 @@ function init() {
 
   renderer.domElement.addEventListener('click', onBoardClick);
   window.addEventListener('resize', onResize);
+
+  // Restore saved camera preset (no animation on load)
+  if (savedPrefs.cameraPreset > 0 && savedPrefs.cameraPreset < cameraPresets.length) {
+    currentCamPreset = savedPrefs.cameraPreset;
+    const preset = cameraPresets[currentCamPreset];
+    camera.position.set(...preset.pos);
+    controls.target.set(...preset.target);
+    camera.fov = preset.fov;
+    camera.updateProjectionMatrix();
+    document.getElementById('cam-btn').textContent = `View: ${preset.name}`;
+  }
 
   loadPieces();
   animate();
@@ -1654,6 +2260,10 @@ function updateStatus() {
     el.textContent = engine.gameResult;
     el.classList.add('gameover');
     stopClock();
+    if (!gameResultRecorded) {
+      gameResultRecorded = true;
+      onGameEnd();
+    }
   } else if (engine.inCheck) {
     const side = engine.turn === 'w' ? 'White' : 'Black';
     const who = isBotTurn() ? `${side} (Bot)` : side;
@@ -1666,17 +2276,104 @@ function updateStatus() {
   }
 }
 
+function onGameEnd() {
+  const result = determineResult(engine.gameResult, gameSettings);
+  const moveCount = engine.moveHistory.length;
+  const recorded = recordGameResult(result, engine.gameResult, gameSettings, moveCount);
+  refreshProfileDrawer();
+
+  // Show game-over modal after a beat so the final move lands
+  setTimeout(() => showGameOverModal(result, moveCount), 800);
+}
+
+function showGameOverModal(result, moveCount) {
+  const headline = document.getElementById('gameover-headline');
+  const detail = document.getElementById('gameover-detail');
+  const moves = document.getElementById('gameover-moves');
+
+  headline.className = '';
+
+  if (result === 'win') {
+    headline.textContent = 'Victory';
+    headline.classList.add('win');
+    detail.textContent = engine.gameResult;
+  } else if (result === 'loss') {
+    headline.textContent = 'Defeated';
+    headline.classList.add('loss');
+    detail.textContent = engine.gameResult;
+  } else if (result === 'draw') {
+    headline.textContent = 'Stalemate';
+    headline.classList.add('draw');
+    detail.textContent = 'The game ends in a draw.';
+  } else {
+    // pvp
+    headline.textContent = 'Game Over';
+    headline.classList.add('draw');
+    detail.textContent = engine.gameResult;
+  }
+
+  const fullMoves = Math.ceil(moveCount / 2);
+  moves.textContent = fullMoves + (fullMoves === 1 ? ' move' : ' moves');
+
+  // Reset animation
+  const inner = document.getElementById('gameover-inner');
+  inner.style.animation = 'none';
+  inner.offsetWidth;
+  inner.style.animation = '';
+
+  document.getElementById('gameover-modal').classList.add('active');
+}
+
+window.gameoverNewGame = function() {
+  document.getElementById('gameover-modal').classList.remove('active');
+  botThinking = false;
+  stopClock();
+  cleanupShatterAnimations();
+  document.getElementById('bot-thinking').classList.remove('active');
+  showSettings();
+};
+
+window.gameoverViewStats = function() {
+  document.getElementById('gameover-modal').classList.remove('active');
+  openProfileDrawer();
+};
+
+const PIECE_ICONS = {
+  wp: 'Piece Icons/White/Pawn Icon White.png',
+  wn: 'Piece Icons/White/Kinght Icon White.png',
+  wb: 'Piece Icons/White/Bishop Icon Whitepng.png',
+  wr: 'Piece Icons/White/Rook Icon White.png',
+  wq: 'Piece Icons/White/Queen Icon White.png',
+  wk: 'Piece Icons/White/King Icon White.png',
+  bp: 'Piece Icons/Black/Pawn Icon Black.png',
+  bn: 'Piece Icons/Black/Kinght Icon Black.png',
+  bb: 'Piece Icons/Black/Bishop Icon Black.png',
+  br: 'Piece Icons/Black/Rook Icon Black.png',
+  bq: 'Piece Icons/Black/Queen Icon Black.png',
+  bk: 'Piece Icons/Black/King Icon Black.png',
+};
+
 function updateCaptured() {
   const order = ['q','r','b','n','p'];
   for (const color of ['w','b']) {
     const sorted = [...engine.capturedPieces[color]].sort((a,b) => order.indexOf(a)-order.indexOf(b));
     const el = document.getElementById(color==='w'?'captured-white':'captured-black');
-    el.innerHTML = sorted.map(t => `<div class="captured-piece">${UNICODE_PIECES[color+t]}</div>`).join('');
+    el.innerHTML = sorted.map(t => `<div class="captured-piece"><img src="${PIECE_ICONS[color+t]}" alt="${t}"></div>`).join('');
   }
 }
 
 // ─── GLOBAL ACTIONS ──────────────────────────────────────────
 window.resetGame = function() {
+  // If game is over, skip confirmation — go straight to settings
+  if (engine.gameOver) {
+    document.getElementById('gameover-modal').classList.remove('active');
+    botThinking = false;
+    stopClock();
+    cleanupShatterAnimations();
+    document.getElementById('bot-thinking').classList.remove('active');
+    showSettings();
+    return;
+  }
   // If game has moves in progress, show confirmation
   if (engine.moveHistory && engine.moveHistory.length > 0) {
     document.getElementById('newgame-modal').classList.add('active');
@@ -1696,6 +2393,7 @@ window.dismissNewGameModal = function() {
 
 window.confirmNewGame = function() {
   document.getElementById('newgame-modal').classList.remove('active');
+  document.getElementById('gameover-modal').classList.remove('active');
   botThinking = false;
   stopClock();
   cleanupShatterAnimations();
@@ -1705,6 +2403,7 @@ window.confirmNewGame = function() {
 
 window.undoMove = function() {
   if (botThinking) return;
+  const wasGameOver = engine.gameOver;
   // When playing bot, undo both bot's move and player's move
   if (botAI && gameSettings.opponent === 'bot') {
     if (engine.moveHistory.length >= 2) {
@@ -1723,6 +2422,7 @@ window.undoMove = function() {
   syncPiecesToBoard();
   updateStatus();
   updateCaptured();
+  if (wasGameOver) gameResultRecorded = false;
 };
 
 window.flipBoard = function() {
@@ -1755,6 +2455,7 @@ window.cycleCamera = function() {
   const preset = cameraPresets[currentCamPreset];
   document.getElementById('cam-btn').textContent = `View: ${preset.name}`;
   animateCamera(preset);
+  savePreferences({ cameraPreset: currentCamPreset });
 };
 
 function animateCamera(preset) {
