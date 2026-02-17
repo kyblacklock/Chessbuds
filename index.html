@@ -178,6 +178,7 @@
     align-items: center;
     justify-content: center;
     transition: opacity 0.8s ease;
+    overflow: hidden;
   }
 
   #loading-overlay.hidden {
@@ -185,7 +186,16 @@
     pointer-events: none;
   }
 
+  #loading-bg {
+    position: absolute;
+    inset: 0;
+    background: url('Characters.png') center / cover no-repeat;
+    opacity: 0.07;
+    filter: saturate(0.3);
+  }
+
   #loading-title {
+    position: relative;
     font-family: 'Instrument Serif', Georgia, serif;
     font-weight: 400;
     font-style: italic;
@@ -196,6 +206,7 @@
   }
 
   #loading-canvas {
+    position: relative;
     width: 220px;
     height: 220px;
     margin-bottom: 32px;
@@ -208,6 +219,7 @@
   }
 
   #loading-bar-track {
+    position: relative;
     width: 200px;
     height: 1px;
     background: rgba(255, 255, 255, 0.06);
@@ -223,6 +235,7 @@
   }
 
   #loading-text {
+    position: relative;
     font-family: 'DM Sans', sans-serif;
     font-size: 12px;
     font-weight: 400;
@@ -1006,6 +1019,7 @@
 <body>
 
 <div id="loading-overlay">
+  <div id="loading-bg"></div>
   <div id="loading-title">Chessbuds</div>
   <canvas id="loading-canvas"></canvas>
   <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
@@ -1908,8 +1922,6 @@ function initLoadingScene() {
   rim.position.set(-2, 3, 6);
   loadingScene.add(rim);
 
-  loadingActive = true;
-  animateLoading();
 }
 
 function setLoadingPiece(geometry) {
@@ -1921,17 +1933,26 @@ function setLoadingPiece(geometry) {
     clearcoat: 0.8, clearcoatRoughness: 0.15
   });
   loadingPieceMesh = new THREE.Mesh(geometry, mat);
-  // Face the knight to a nice 3/4 angle
   loadingPieceMesh.rotation.y = -Math.PI * 0.25;
   loadingScene.add(loadingPieceMesh);
-  document.getElementById('loading-canvas').classList.add('visible');
+
+  // Pre-render a frame before revealing, then start the loop
+  loadingRenderer.render(loadingScene, loadingCamera);
+  requestAnimationFrame(() => {
+    document.getElementById('loading-canvas').classList.add('visible');
+    loadingActive = true;
+    animateLoading();
+  });
 }
 
-function animateLoading() {
+let loadingLastTime = 0;
+function animateLoading(time) {
   if (!loadingActive) return;
   requestAnimationFrame(animateLoading);
+  const delta = loadingLastTime ? (time - loadingLastTime) / 1000 : 0;
+  loadingLastTime = time;
   if (loadingPieceMesh) {
-    loadingPieceMesh.rotation.y += 0.015;
+    loadingPieceMesh.rotation.y += delta * 0.9;
   }
   loadingRenderer.render(loadingScene, loadingCamera);
 }
@@ -1951,7 +1972,7 @@ function disposeLoadingScene() {
 
 // Yield to main thread so the browser doesn't freeze
 function yieldToMain() {
-  return new Promise(resolve => setTimeout(resolve, 0));
+  return new Promise(resolve => setTimeout(resolve, 60));
 }
 
 async function loadSinglePiece(loader, name, file, height) {
@@ -1976,10 +1997,8 @@ async function loadPieces() {
     king: 3.2, queen: 2.9, bishop: 2.5, knight: 2.3, rook: 2.0, pawn: 1.7
   };
 
-  // Start the loading preview scene immediately
   initLoadingScene();
 
-  // Load knight FIRST so the spinner shows quickly
   const loadingMessages = {
     knight: 'Saddling up Nigel Knight...',
     king: 'Polishing King Leo\'s crown...',
@@ -1989,13 +2008,13 @@ async function loadPieces() {
     pawn: 'Arming Pawdrick for battle...'
   };
 
+  // Load knight first and show it rotating immediately
   loadText.textContent = loadingMessages.knight;
   await yieldToMain();
   try {
     const knightGeo = await loadSinglePiece(loader, 'knight', STL_FILES.knight, PIECE_HEIGHTS.knight);
     pieceGeometries.knight = knightGeo;
     setLoadingPiece(knightGeo);
-    console.log('Knight loaded for spinner');
   } catch (err) {
     console.error('Failed to load knight:', err);
     const geo = new THREE.CylinderGeometry(0.35, 0.5, 2.3, 16);
@@ -2005,17 +2024,14 @@ async function loadPieces() {
   loaded++;
   loadBar.style.width = `${(loaded / totalPieces) * 100}%`;
 
-  // Load the remaining pieces
+  // Load remaining pieces in background
   const remaining = Object.entries(STL_FILES).filter(([name]) => name !== 'knight');
-
   for (const [name, file] of remaining) {
     loadText.textContent = loadingMessages[name] || `Summoning ${name}...`;
     await yieldToMain();
     try {
       const geometry = await loadSinglePiece(loader, name, file, PIECE_HEIGHTS[name]);
       pieceGeometries[name] = geometry;
-      const finalTris = (geometry.getIndex()?.count || geometry.getAttribute('position').count) / 3;
-      console.log(`Loaded ${name}: ${finalTris} triangles`);
     } catch (err) {
       console.error(`Failed to load ${name}:`, err);
       const h = PIECE_HEIGHTS[name];
@@ -2023,7 +2039,6 @@ async function loadPieces() {
       geo.translate(0, h / 2, 0);
       pieceGeometries[name] = geo;
     }
-
     loaded++;
     loadBar.style.width = `${(loaded / totalPieces) * 100}%`;
     await yieldToMain();
