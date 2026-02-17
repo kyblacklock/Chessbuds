@@ -271,6 +271,40 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* ── Profile Node ── */
+  .profile-node {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    overflow: hidden;
+    text-decoration: none;
+  }
+
+  .profile-node-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .profile-node:hover .profile-node-icon { opacity: 1; }
+
+  .profile-node:hover {
+    background: var(--surface-hover);
+    border-color: var(--border-hover);
+  }
+
   /* ── Responsive ── */
   @media (max-width: 600px) {
     .waitlist-heading { font-size: 34px; }
@@ -288,6 +322,9 @@
   <div class="nav-links">
     <a class="nav-link" href="characters.html">Characters</a>
     <a class="nav-link" href="index.html">Play Game</a>
+    <a class="profile-node" href="index.html" title="Profile">
+      <img class="profile-node-icon" src="King Favicon.png" alt="Profile">
+    </a>
   </div>
 </div>
 
