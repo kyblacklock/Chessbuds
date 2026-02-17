@@ -506,6 +506,191 @@
     color: var(--accent);
   }
 
+  /* ── Piece Section ── */
+  .detail-piece-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: stretch;
+    margin-top: 64px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeUp 0.5s ease 0.5s forwards;
+  }
+
+  .piece-info {
+    padding: 28px;
+    border-radius: 16px;
+    background: linear-gradient(168deg, rgba(26, 26, 24, 0.6) 0%, rgba(20, 20, 18, 0.4) 100%);
+    border: 1px solid var(--border);
+    max-width: 400px;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .piece-info-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .piece-info-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
+    opacity: 0.85;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+  }
+
+  .piece-info-role {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+
+  .piece-info-name {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 20px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+
+  .piece-stats {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .piece-stat {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  }
+
+  .piece-stat:last-child { border-bottom: none; }
+
+  .piece-stat-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    flex-shrink: 0;
+  }
+
+  .piece-stat-value {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--text-dim);
+    text-align: right;
+  }
+
+  .piece-stat-value.accent {
+    color: var(--accent);
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 20px;
+  }
+
+  .piece-move-section {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  .piece-move-label {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .piece-move-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+    width: 120px;
+    margin: 0 auto;
+  }
+
+  .piece-move-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .piece-move-cell.active {
+    background: rgba(212, 165, 116, 0.2);
+    box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.25);
+  }
+
+  .piece-move-cell.center {
+    background: rgba(212, 165, 116, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.5);
+    border-radius: 4px;
+  }
+
+  .piece-quote {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .piece-viewer-container {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(168deg, #141413 0%, #0f0f0e 50%, #0c0c0b 100%);
+    border: 1px solid var(--border);
+    cursor: grab;
+  }
+
+  .piece-viewer-container:active { cursor: grabbing; }
+
+  .piece-viewer-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .piece-viewer-hint {
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .piece-viewer-container.interacted .piece-viewer-hint {
+    opacity: 0;
+  }
+
   /* ── Other Characters Nav ── */
   .detail-others {
     margin-top: 80px;
@@ -679,6 +864,9 @@
     .detail-img-frame { max-width: 300px; }
     .detail-name { font-size: 36px; }
     .page-header h1 { font-size: 36px; }
+
+    .detail-piece-section { grid-template-columns: 1fr; gap: 40px; }
+    .piece-viewer-container { min-height: 360px; height: auto; }
   }
 
   @media (max-width: 560px) {
@@ -696,6 +884,10 @@
     #detail-view { padding: 90px 20px 32px; }
     .page-header { padding-top: 84px; }
     .page-header h1 { font-size: 30px; }
+
+    .detail-piece-section { grid-template-columns: 1fr; gap: 24px; }
+    .piece-info { padding: 20px; }
+    .piece-viewer-container { min-height: 300px; }
   }
 
 </style>
@@ -742,6 +934,28 @@
     </div>
   </div>
 
+  <!-- Piece Section -->
+  <div class="detail-piece-section" id="detail-piece-section">
+    <div class="piece-info" id="piece-info">
+      <div class="piece-info-header">
+        <img class="piece-info-icon" id="piece-info-icon" src="" alt="">
+        <div>
+          <div class="piece-info-role" id="piece-info-role"></div>
+          <div class="piece-info-name" id="piece-info-name"></div>
+        </div>
+      </div>
+      <div class="piece-stats" id="piece-stats"></div>
+      <div class="piece-move-section">
+        <div class="piece-move-label">Movement Pattern</div>
+        <div class="piece-move-grid" id="piece-move-grid"></div>
+      </div>
+      <div class="piece-quote" id="piece-quote"></div>
+    </div>
+    <div class="piece-viewer-container" id="piece-viewer-container">
+      <div class="piece-viewer-hint">Drag to rotate</div>
+    </div>
+  </div>
+
   <!-- Other Characters -->
   <div class="detail-others" id="detail-others">
     <div class="detail-others-label">Other Characters</div>
@@ -755,6 +969,15 @@
   </div>
 </div>
 
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.162.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/"
+  }
+}
+</script>
+
 <script>
 
 const characters = {
@@ -765,6 +988,7 @@ const characters = {
     epithet: 'The Wise Sovereign of Chessbuds Kingdom',
     img: 'Character Illustrations/King.png',
     bg: 'Background Illustrations/King.png',
+    stl: 'King.stl', stlHeight: 3.2,
     bio: `<p>Proud, regal and wise, King Leo Longmane is the very picture of courtly power and grace. Feared by his enemies and venerated by his subjects, the mighty Leo once united a realm through authority and compassion.</p><p>Yet heavy is the head that wears the crown, and a prolonged reign has taken its toll on the aged monarch. Still, while his steps may be slower than they once were, King Longmane rules with an iron paw. So long as he stands to fight, the battle for Chessbuds Kingdom is never over.</p>`
   },
   queen: {
@@ -774,6 +998,7 @@ const characters = {
     epithet: 'The Unmatched Queen Bee',
     img: 'Character Illustrations/Queen.png',
     bg: 'Background Illustrations/Queen.png',
+    stl: 'Queen.stl', stlHeight: 2.9,
     bio: `<p>It is said that behind every great man there is an even greater woman. Yet Queen Beatrix stands behind no man — she towers over all, despite her bantam insectile stature. In taverns and pubs all across the kingdom, reverential stories are swapped of her multifaceted battle prowess, one that combines the agility of Big Bishop Bernard with the brute strength of Rook O'Roark.</p><p>There are even those who say (although never when King Leo is listening) that in this land, it is she who truly wears the crown, so to speak. Whether that is true or false, no one can say, but woe to the player who finds him or herself face to face with the Queen Bee, anywhere along the field of play.</p>`
   },
   bishop: {
@@ -783,6 +1008,7 @@ const characters = {
     epithet: 'The Right Hand of the King',
     img: 'Character Illustrations/Bishop.png',
     bg: 'Background Illustrations/Bishop.png',
+    stl: 'Bishop.stl', stlHeight: 2.5,
     bgPos: '70% center',
     bio: `<p>As the voice of God and the right hand of the king, it's fair to say that Big Bishop Bernard knows a thing or two about playing the angles. One by one, his challengers have attempted to unseat his place in King Leo's affections, and one by one they have been turned back. Many are those who have measured themselves against the Bishop, and come up short.</p><p>Starting every battle in his honored position next to the king, Big Bernard's fast, cutting attacks are capable of tearing armies to shreds in a matter of minutes. Clad in a loose fitting tunic, the Bishop's true speed is hidden until the moment he leaps out from behind the wall of pawns towards the unsuspecting enemy. By that point, it is already too late.</p>`
   },
@@ -793,6 +1019,7 @@ const characters = {
     epithet: 'The Laughing Horse',
     img: 'Character Illustrations/Knight.png',
     bg: 'Background Illustrations/Knight.jpg',
+    stl: 'Knight.stl', stlHeight: 2.3,
     bio: `<p>How to predict the actions of a madman? How indeed. As delusional as he is dangerous, "The Laughing Horse" zigzags across the battlefield to the confusion and horror of his foes, a lunatic grin plastered on his dappled muzzle.</p><p>Though when it comes to war, Sir Nigel does not horse around. A prodigious swordsman since he was just a pony, Nigel is considered the most creative and crafty warrior in King Longmane's army. As long as the knight remains on the board, no line of defense, no matter how well structured, is safe from his fabled blade.</p>`
   },
   rook: {
@@ -802,6 +1029,7 @@ const characters = {
     epithet: 'The Straight Shooter',
     img: 'Character Illustrations/Rook.png',
     bg: 'Background Illustrations/Rook.png',
+    stl: 'Rook.stl', stlHeight: 2.0,
     bio: `<p>Rook O'Roark has always been a straight shooter. A war-torn veteran of a thousand battles, his cold, beady eyes have seen it all. Today, the "Dark Bird" has emerged as paragon of power and fear, overseeing the perimeter of King Leo's legendary legion from his castle perch high above.</p><p>Simple and straightforward, Rook has no time for the cross-eyed antics of Nigel the Knight. He prefers the direct attack, flying forwards, backwards, and sideways on strong raven wings that beat the air into submission. Now, O'Roark lives only for one thing\u2014 the clink of gold coins at the end of a fight in which, once again, his beak and talons prove too much for his weaker prey.</p>`
   },
   pawn: {
@@ -811,8 +1039,54 @@ const characters = {
     epithet: 'The Valiant Squire',
     img: 'Character Illustrations/Pawn.png',
     bg: 'Background Illustrations/Pawn.png',
+    stl: 'Pawn.stl', stlHeight: 1.7,
     bgPos: '70% center',
     bio: `<p>Don't let his size fool you — Pawdrick is as tough as they come! A valiant squire of humble origin, Pawdrick clawed his way out of strenuous serfdom to earn a coveted spot in King Longmane's retinue.</p><p>There are many who dismiss the Pawn, preferring to lather their attention on the larger players who stand behind him. But underestimate Pawdrick at your own peril; his courage and pluck have decided too many battles to count. Scrappy, loyal and steadfast, this little squirrel is honored to serve on the front line of Chessbuds Kingdom.</p>`
+  }
+};
+
+const pieceData = {
+  king: {
+    icon: 'Piece Icons/White/King Icon White.png',
+    value: '∞', movement: 'One square, any direction',
+    range: 'Close', special: 'Castling',
+    quote: 'So long as he stands to fight, the battle is never over.',
+    pattern: [0,0,0,0,0, 0,1,1,1,0, 0,1,2,1,0, 0,1,1,1,0, 0,0,0,0,0]
+  },
+  queen: {
+    icon: 'Piece Icons/White/Queen Icon White.png',
+    value: '9', movement: 'Any direction, any distance',
+    range: 'Unlimited', special: 'None',
+    quote: 'Woe to the player who finds herself face to face with the Queen Bee.',
+    pattern: [1,0,1,0,1, 0,1,1,1,0, 1,1,2,1,1, 0,1,1,1,0, 1,0,1,0,1]
+  },
+  bishop: {
+    icon: 'Piece Icons/White/Bishop Icon Whitepng.png',
+    value: '3', movement: 'Diagonals, any distance',
+    range: 'Long', special: 'None',
+    quote: 'It\u2019s fair to say that Big Bishop Bernard knows a thing or two about playing the angles.',
+    pattern: [1,0,0,0,1, 0,1,0,1,0, 0,0,2,0,0, 0,1,0,1,0, 1,0,0,0,1]
+  },
+  knight: {
+    icon: 'Piece Icons/White/Kinght Icon White.png',
+    value: '3', movement: 'L-shape leap',
+    range: 'Mid', special: 'Jumps over pieces',
+    quote: 'No line of defense, no matter how well structured, is safe from his fabled blade.',
+    pattern: [0,1,0,1,0, 1,0,0,0,1, 0,0,2,0,0, 1,0,0,0,1, 0,1,0,1,0]
+  },
+  rook: {
+    icon: 'Piece Icons/White/Rook Icon White.png',
+    value: '5', movement: 'Straight lines, any distance',
+    range: 'Unlimited', special: 'Castling',
+    quote: 'He prefers the direct attack, flying forwards, backwards, and sideways.',
+    pattern: [0,0,1,0,0, 0,0,1,0,0, 1,1,2,1,1, 0,0,1,0,0, 0,0,1,0,0]
+  },
+  pawn: {
+    icon: 'Piece Icons/White/Pawn Icon White.png',
+    value: '1', movement: 'Forward one or two from start',
+    range: 'Close', special: 'En passant, Promotion',
+    quote: 'Underestimate Pawdrick at your own peril.',
+    pattern: [0,0,1,0,0, 0,1,1,1,0, 0,0,2,0,0, 0,0,0,0,0, 0,0,0,0,0]
   }
 };
 
@@ -893,6 +1167,33 @@ function showDetail(key) {
   document.getElementById('detail-epithet').textContent = c.epithet;
   document.getElementById('detail-bio').innerHTML = c.bio;
 
+  // Populate piece info
+  const pd = pieceData[key];
+  document.getElementById('piece-info-icon').src = pd.icon;
+  document.getElementById('piece-info-icon').alt = c.role;
+  document.getElementById('piece-info-role').textContent = 'The Piece';
+  document.getElementById('piece-info-name').textContent = c.role;
+
+  const stats = [
+    { label: 'Value', value: pd.value, accent: true },
+    { label: 'Range', value: pd.range },
+    { label: 'Movement', value: pd.movement },
+    { label: 'Special', value: pd.special }
+  ];
+  document.getElementById('piece-stats').innerHTML = stats.map(s =>
+    `<div class="piece-stat"><span class="piece-stat-label">${s.label}</span><span class="piece-stat-value${s.accent ? ' accent' : ''}">${s.value}</span></div>`
+  ).join('');
+
+  const moveGrid = document.getElementById('piece-move-grid');
+  moveGrid.innerHTML = '';
+  pd.pattern.forEach(cell => {
+    const div = document.createElement('div');
+    div.className = 'piece-move-cell' + (cell === 2 ? ' center' : cell === 1 ? ' active' : '');
+    moveGrid.appendChild(div);
+  });
+
+  document.getElementById('piece-quote').textContent = '\u201C' + pd.quote + '\u201D';
+
   // Build other characters grid
   const othersGrid = document.getElementById('detail-others-grid');
   othersGrid.innerHTML = '';
@@ -913,7 +1214,7 @@ function showDetail(key) {
   void detailView.offsetWidth;
   detailView.classList.add('active');
 
-  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio, .detail-others, .detail-cta').forEach(el => {
+  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio, .detail-piece-section, .detail-others, .detail-cta').forEach(el => {
     el.style.animation = 'none';
     void el.offsetWidth;
     el.style.animation = '';
@@ -921,9 +1222,16 @@ function showDetail(key) {
 
   window.scrollTo({ top: 0, behavior: 'instant' });
   history.pushState({ character: key }, '', `#${key}`);
+
+  // Load 3D piece viewer — module script may not be ready yet
+  window._pendingPieceLoad = { stl: c.stl, height: c.stlHeight };
+  if (window.loadPieceViewer) {
+    requestAnimationFrame(() => window.loadPieceViewer(c.stl, c.stlHeight));
+  }
 }
 
 function hideDetail() {
+  if (window.disposePieceViewer) window.disposePieceViewer();
   detailView.classList.remove('active');
   pageHeader.style.display = '';
   shelfView.classList.remove('hidden');
@@ -951,6 +1259,197 @@ if (window.location.hash) {
   if (characters[key]) showDetail(key);
 }
 
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
+
+let viewerScene, viewerCamera, viewerRenderer, viewerControls;
+let viewerPiece, viewerAnimId;
+let viewerInitialized = false;
+
+function initViewer() {
+  const container = document.getElementById('piece-viewer-container');
+  const rect = container.getBoundingClientRect();
+
+  viewerScene = new THREE.Scene();
+
+  viewerCamera = new THREE.PerspectiveCamera(32, rect.width / rect.height, 0.1, 100);
+  viewerCamera.position.set(0, 3, 7);
+
+  viewerRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  viewerRenderer.setSize(rect.width, rect.height);
+  viewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  viewerRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  viewerRenderer.toneMappingExposure = 1.2;
+  container.insertBefore(viewerRenderer.domElement, container.firstChild);
+
+  viewerControls = new OrbitControls(viewerCamera, viewerRenderer.domElement);
+  viewerControls.target.set(0, 1.2, 0);
+  viewerControls.enableDamping = true;
+  viewerControls.dampingFactor = 0.08;
+  viewerControls.enableZoom = true;
+  viewerControls.minDistance = 4;
+  viewerControls.maxDistance = 14;
+  viewerControls.enablePan = false;
+  viewerControls.maxPolarAngle = Math.PI / 2;
+  viewerControls.minPolarAngle = Math.PI / 8;
+  viewerControls.autoRotate = true;
+  viewerControls.autoRotateSpeed = 1.5;
+
+  // Hide hint on interaction
+  viewerControls.addEventListener('start', () => {
+    container.classList.add('interacted');
+  });
+
+  // Lighting
+  const ambient = new THREE.AmbientLight(0xFFE8CC, 0.5);
+  viewerScene.add(ambient);
+
+  const key = new THREE.DirectionalLight(0xFFCC88, 2.0);
+  key.position.set(4, 10, 6);
+  viewerScene.add(key);
+
+  const fill = new THREE.DirectionalLight(0x8899BB, 0.6);
+  fill.position.set(-6, 6, -4);
+  viewerScene.add(fill);
+
+  const rim = new THREE.DirectionalLight(0xFFAA55, 0.5);
+  rim.position.set(-2, 4, 8);
+  viewerScene.add(rim);
+
+  // Ground plane (subtle)
+  const groundGeo = new THREE.CircleGeometry(3, 48);
+  const groundMat = new THREE.MeshStandardMaterial({
+    color: 0x1a1816, roughness: 0.9, metalness: 0
+  });
+  const ground = new THREE.Mesh(groundGeo, groundMat);
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = 0;
+  viewerScene.add(ground);
+
+  viewerInitialized = true;
+
+  // Resize observer
+  const ro = new ResizeObserver(() => {
+    const r = container.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) return;
+    viewerCamera.aspect = r.width / r.height;
+    viewerCamera.updateProjectionMatrix();
+    viewerRenderer.setSize(r.width, r.height);
+  });
+  ro.observe(container);
+  viewerRenderer.userData = { resizeObserver: ro };
+}
+
+function processGeometry(geometry, targetHeight) {
+  let geo = BufferGeometryUtils.mergeVertices(geometry, 0.0005);
+  geo.computeBoundingBox();
+  const bb = geo.boundingBox;
+  const center = new THREE.Vector3();
+  bb.getCenter(center);
+  const size = new THREE.Vector3();
+  bb.getSize(size);
+  const scale = targetHeight / Math.max(size.x, size.y, size.z);
+
+  const posArr = geo.getAttribute('position').array;
+  for (let i = 0; i < posArr.length; i += 3) {
+    posArr[i]   = (posArr[i]   - center.x) * scale;
+    posArr[i+1] = (posArr[i+1] - bb.min.y) * scale;
+    posArr[i+2] = (posArr[i+2] - center.z) * scale;
+  }
+  geo.getAttribute('position').needsUpdate = true;
+  geo.computeBoundingBox();
+  geo.computeVertexNormals();
+  return geo;
+}
+
+async function loadPieceViewer(stlFile, stlHeight) {
+  if (!viewerInitialized) initViewer();
+
+  // Remove previous piece
+  if (viewerPiece) {
+    viewerScene.remove(viewerPiece);
+    viewerPiece.geometry.dispose();
+    viewerPiece = null;
+  }
+
+  // Reset hint
+  document.getElementById('piece-viewer-container').classList.remove('interacted');
+
+  // Reset camera
+  viewerCamera.position.set(0, 3, 7);
+  viewerControls.target.set(0, 1.2, 0);
+  viewerControls.update();
+
+  try {
+    const response = await fetch(stlFile);
+    const buffer = await response.arrayBuffer();
+    const loader = new STLLoader();
+    let geometry = loader.parse(buffer);
+    geometry = processGeometry(geometry, stlHeight);
+
+    const material = new THREE.MeshPhysicalMaterial({
+      color: 0xFAF0E0,
+      roughness: 0.15,
+      metalness: 0.0,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.15,
+      envMapIntensity: 0.4,
+      sheen: 0.3,
+      sheenColor: new THREE.Color(0xFFF8EE)
+    });
+
+    viewerPiece = new THREE.Mesh(geometry, material);
+    viewerPiece.castShadow = true;
+    viewerScene.add(viewerPiece);
+  } catch (e) {
+    console.warn('Failed to load piece STL:', e);
+  }
+
+  // Start render loop if not running
+  if (!viewerAnimId) animateViewer();
+}
+
+function animateViewer() {
+  viewerAnimId = requestAnimationFrame(animateViewer);
+  if (!viewerRenderer) return;
+  viewerControls.update();
+  viewerRenderer.render(viewerScene, viewerCamera);
+}
+
+function disposePieceViewer() {
+  if (viewerAnimId) {
+    cancelAnimationFrame(viewerAnimId);
+    viewerAnimId = null;
+  }
+  if (viewerPiece) {
+    viewerScene.remove(viewerPiece);
+    viewerPiece.geometry.dispose();
+    viewerPiece.material.dispose();
+    viewerPiece = null;
+  }
+  if (viewerRenderer) {
+    viewerRenderer.userData.resizeObserver?.disconnect();
+    viewerRenderer.domElement.remove();
+    viewerRenderer.dispose();
+    viewerRenderer = null;
+  }
+  viewerInitialized = false;
+}
+
+window.loadPieceViewer = loadPieceViewer;
+window.disposePieceViewer = disposePieceViewer;
+
+// Fulfill any pending load request from classic script
+if (window._pendingPieceLoad) {
+  const { stl, height } = window._pendingPieceLoad;
+  delete window._pendingPieceLoad;
+  requestAnimationFrame(() => loadPieceViewer(stl, height));
+}
 </script>
 </body>
 </html>
