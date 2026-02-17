@@ -19,14 +19,6 @@
     justify-content: center;
   }
 
-  #game-title {
-    text-decoration: none;
-    pointer-events: auto;
-    transition: opacity 0.3s ease;
-  }
-
-  #game-title:hover { opacity: 0.8; }
-
   /* ── Full Background ── */
   .bg {
     position: fixed;
@@ -318,7 +310,7 @@
 
 <!-- Navigation -->
 <div id="top-bar">
-  <a id="game-title" href="index.html">Chessbuds</a>
+  <a id="game-title" href="#">Chessbuds</a>
   <div class="nav-links">
     <a class="nav-link" href="characters.html">Characters</a>
     <a class="nav-link" href="index.html">Play Game</a>
@@ -355,7 +347,7 @@
       <input class="waitlist-input" type="email" placeholder="Your email address" required>
       <button class="waitlist-submit" type="submit">Join the Court</button>
     </form>
-    <p class="waitlist-privacy">We'll only write when there's news from the kingdom.</p>
+    <p class="waitlist-privacy">We'll only write when there's news from the kingdom. See our <button class="footer-link" style="font-size:11px;font-style:italic;display:inline" onclick="openLegalDrawer('privacy')">Privacy Policy</button>.</p>
   </div>
 
   <div class="waitlist-success" id="waitlist-success">
@@ -369,6 +361,8 @@
 
 </div>
 
+<script src="about.js"></script>
+<script src="legal.js"></script>
 <script>
 setTimeout(() => {
   document.getElementById('modal-backdrop').classList.add('visible');
