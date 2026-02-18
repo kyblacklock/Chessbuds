@@ -13,7 +13,7 @@
         <p class="about-tagline">Chess with Character</p>
         <div class="about-divider"></div>
         <p class="about-body">Chess has always been deep. We wanted to make it personal. Chessbuds gives every piece on the board a name, a face, and a reason to root for them.</p>
-        <p class="about-body">It's a new way to engage with the "King's Game." Same strategy, same depth, but now every piece has a personality, a story, and a presence that makes each match feel alive.</p>
+        <p class="about-body">The strategy doesn't change. The depth is still there. But when the pieces have personality and the board tells a story, you stop playing positions and start playing moments. That's a different relationship with the "King's Game."</p>
         <p class="about-body">At its core, Chessbuds exists to teach chess and help more people fall in love with the game. Not just the rules, but the thinking, the patience, the moments that stick with you long after the game is won or lost.</p>
         <p class="about-body">We're still building. If you're here, you're early, and we're glad you found us. Welcome to the Kingdom.</p>
         <div class="about-footer">For the love of the game</div>
