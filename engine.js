@@ -22,6 +22,8 @@ class ChessEngine {
     this.gameOver = false;
     this.gameResult = '';
     this.capturedPieces = { w: [], b: [] };
+    this.positionCounts = {};
+    this._recordPosition();
   }
 
   initialBoard() {
@@ -45,6 +47,61 @@ class ChessEngine {
       if (p && p.c===color && p.t==='k') return [r,c];
     }
     return null;
+  }
+
+  // Serialize position for threefold repetition detection.
+  // Includes board, turn, castling rights, and en passant target.
+  positionKey() {
+    let key = '';
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = this.board[r][c];
+        key += p ? (p.c + p.t) : '--';
+      }
+    }
+    key += this.turn;
+    key += (this.castling.wk?'1':'0') + (this.castling.wq?'1':'0') +
+           (this.castling.bk?'1':'0') + (this.castling.bq?'1':'0');
+    key += this.enPassantTarget ? (this.enPassantTarget[0] + ',' + this.enPassantTarget[1]) : 'x';
+    return key;
+  }
+
+  _recordPosition() {
+    const key = this.positionKey();
+    this.positionCounts[key] = (this.positionCounts[key] || 0) + 1;
+    return this.positionCounts[key];
+  }
+
+  _unrecordPosition(key) {
+    if (this.positionCounts[key] > 1) {
+      this.positionCounts[key]--;
+    } else {
+      delete this.positionCounts[key];
+    }
+  }
+
+  isInsufficientMaterial() {
+    const pieces = { w: [], b: [] };
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = this.board[r][c];
+        if (p && p.t !== 'k') pieces[p.c].push({ t: p.t, r, c });
+      }
+    }
+    const wc = pieces.w.length;
+    const bc = pieces.b.length;
+    // K vs K
+    if (wc === 0 && bc === 0) return true;
+    // K+B vs K or K+N vs K
+    if (wc === 0 && bc === 1 && (pieces.b[0].t === 'b' || pieces.b[0].t === 'n')) return true;
+    if (bc === 0 && wc === 1 && (pieces.w[0].t === 'b' || pieces.w[0].t === 'n')) return true;
+    // K+B vs K+B with bishops on same color square
+    if (wc === 1 && bc === 1 && pieces.w[0].t === 'b' && pieces.b[0].t === 'b') {
+      const wSquareColor = (pieces.w[0].r + pieces.w[0].c) % 2;
+      const bSquareColor = (pieces.b[0].r + pieces.b[0].c) % 2;
+      if (wSquareColor === bSquareColor) return true;
+    }
+    return false;
   }
 
   isAttackedBy(r, c, byColor) {
@@ -291,6 +348,13 @@ class ChessEngine {
     if (move.tr===0&&move.tc===0) this.castling.bq=false;
     if (move.tr===0&&move.tc===7) this.castling.bk=false;
 
+    // Half-move clock: reset on pawn move or capture, otherwise increment
+    if (piece.t === 'p' || captured || move.flags.enPassant) {
+      this.halfMoveClock = 0;
+    } else {
+      this.halfMoveClock++;
+    }
+
     // En passant target
     this.enPassantTarget = null;
     if (move.flags.doublePush) {
@@ -302,6 +366,9 @@ class ChessEngine {
     this.turn = this.turn==='w'?'b':'w';
     this.moveHistory.push(snapshot);
 
+    // Record position for repetition detection
+    const repCount = this._recordPosition();
+
     // Check game state
     this.inCheck = this.isInCheck(this.turn);
     const hasLegalMoves = this.allLegalMoves(this.turn).length > 0;
@@ -310,11 +377,24 @@ class ChessEngine {
       this.gameResult = this.inCheck
         ? (this.turn==='w' ? 'Black wins by checkmate' : 'White wins by checkmate')
         : 'Draw by stalemate';
+    } else if (this.halfMoveClock >= 100) {
+      this.gameOver = true;
+      this.gameResult = 'Draw by fifty-move rule';
+    } else if (repCount >= 3) {
+      this.gameOver = true;
+      this.gameResult = 'Draw by threefold repetition';
+    } else if (this.isInsufficientMaterial()) {
+      this.gameOver = true;
+      this.gameResult = 'Draw by insufficient material';
     }
   }
 
   undoLastMove() {
     if (this.moveHistory.length === 0) return false;
+
+    // Unrecord the current position before restoring
+    this._unrecordPosition(this.positionKey());
+
     const snap = this.moveHistory.pop();
     const { move, piece, captured, castling, enPassantTarget, halfMoveClock, epCaptured } = snap;
 

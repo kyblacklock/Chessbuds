@@ -890,40 +890,6 @@
     50% { opacity: 0.45; transform: scale(1.06); }
   }
 
-  /* ── Profile Node ── */
-  .profile-node {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    padding: 0;
-    overflow: hidden;
-    text-decoration: none;
-  }
-
-  .profile-node-icon {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
-  }
-
-  .profile-node:hover .profile-node-icon { opacity: 1; }
-
-  .profile-node:hover {
-    background: var(--surface-hover);
-    border-color: var(--border-hover);
-  }
-
   /* ── Responsive ── */
   @media (max-width: 900px) {
     #shelf-view {
@@ -1148,14 +1114,14 @@ const pieceData = {
     pattern: [1,0,1,0,1, 0,1,1,1,0, 1,1,2,1,1, 0,1,1,1,0, 1,0,1,0,1]
   },
   bishop: {
-    icon: 'Piece Icons/White/Bishop Icon Whitepng.png',
+    icon: 'Piece Icons/White/Bishop Icon White.png',
     value: '3', movement: 'Diagonals, any distance',
     range: 'Long', special: 'None',
     quote: 'It\u2019s fair to say that Big Bishop Bernard knows a thing or two about playing the angles.',
     pattern: [1,0,0,0,1, 0,1,0,1,0, 0,0,2,0,0, 0,1,0,1,0, 1,0,0,0,1]
   },
   knight: {
-    icon: 'Piece Icons/White/Kinght Icon White.png',
+    icon: 'Piece Icons/White/Knight Icon White.png',
     value: '3', movement: 'L-shape leap',
     range: 'Mid', special: 'Jumps over pieces',
     quote: 'No line of defense, no matter how well structured, is safe from his fabled blade.',

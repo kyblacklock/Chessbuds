@@ -149,29 +149,55 @@ function refreshProfileDrawer() {
     s.bestStreak > 0 ? s.bestStreak + 'W' : '0';
 
   const recentEl = document.getElementById('profile-recent');
+  recentEl.textContent = '';
   if (s.recentGames.length === 0) {
-    recentEl.innerHTML = '<div class="profile-empty">No games yet</div>';
+    var empty = document.createElement('div');
+    empty.className = 'profile-empty';
+    empty.textContent = 'No games yet';
+    recentEl.appendChild(empty);
     return;
   }
 
-  recentEl.innerHTML = s.recentGames.slice(0, 10).map(game => {
-    const opponent = game.opponent === 'bot'
+  var VALID_RESULTS = { win: true, loss: true, draw: true, pvp: true };
+
+  s.recentGames.slice(0, 10).forEach(function(game) {
+    var opponent = game.opponent === 'bot'
       ? 'Bot (' + (DIFFICULTY_NAMES[game.difficulty] || '?') + ')'
       : 'Human';
-    const ago = timeAgo(game.timestamp);
-    const fullMoves = Math.ceil(game.moves / 2);
-    const resultLabel = game.result === 'pvp' ? 'PvP'
+    var ago = timeAgo(game.timestamp);
+    var fullMoves = Math.ceil(game.moves / 2);
+    var resultLabel = game.result === 'pvp' ? 'PvP'
       : game.result === 'win' ? 'W' : game.result === 'loss' ? 'L' : 'D';
 
-    return '<div class="profile-game-row">' +
-      '<div class="profile-game-result ' + game.result + '"></div>' +
-      '<div class="profile-game-info">' +
-        '<div class="profile-game-detail">' + resultLabel + ' vs ' + opponent + '</div>' +
-        '<div class="profile-game-meta">' + ago + '</div>' +
-      '</div>' +
-      '<div class="profile-game-moves">' + fullMoves + ' moves</div>' +
-    '</div>';
-  }).join('');
+    var row = document.createElement('div');
+    row.className = 'profile-game-row';
+
+    var dot = document.createElement('div');
+    dot.className = 'profile-game-result ' + (VALID_RESULTS[game.result] ? game.result : 'draw');
+
+    var info = document.createElement('div');
+    info.className = 'profile-game-info';
+
+    var detail = document.createElement('div');
+    detail.className = 'profile-game-detail';
+    detail.textContent = resultLabel + ' vs ' + opponent;
+
+    var meta = document.createElement('div');
+    meta.className = 'profile-game-meta';
+    meta.textContent = ago;
+
+    info.appendChild(detail);
+    info.appendChild(meta);
+
+    var moves = document.createElement('div');
+    moves.className = 'profile-game-moves';
+    moves.textContent = fullMoves + ' moves';
+
+    row.appendChild(dot);
+    row.appendChild(info);
+    row.appendChild(moves);
+    recentEl.appendChild(row);
+  });
 }
 
 function timeAgo(timestamp) {
@@ -187,11 +213,20 @@ function timeAgo(timestamp) {
 
 let toastTimeout = null;
 
-function showNudgeToast(message) {
+function showNudgeToast(boldText, plainText) {
   const toast = document.getElementById('nudge-toast');
   if (!toast) return;
   if (toastTimeout) clearTimeout(toastTimeout);
-  toast.querySelector('.toast-text').innerHTML = message;
+  const textEl = toast.querySelector('.toast-text');
+  textEl.textContent = '';
+  if (boldText) {
+    var strong = document.createElement('strong');
+    strong.textContent = boldText;
+    textEl.appendChild(strong);
+    textEl.appendChild(document.createTextNode(' ' + plainText));
+  } else {
+    textEl.textContent = plainText;
+  }
   toast.classList.add('visible');
   toastTimeout = setTimeout(dismissNudgeToast, 6000);
 }
@@ -208,21 +243,21 @@ function checkNudgeToasts(data, result) {
 
   if (result === 'win' && s.wins === 1) {
     setTimeout(function() {
-      showNudgeToast('<strong>First victory!</strong> Your journey in Chessbuds Kingdom has begun.');
+      showNudgeToast('First victory!', 'Your journey in Chessbuds Kingdom has begun.');
     }, 1500);
     return;
   }
 
   if (result === 'win' && (s.currentStreak === 3 || s.currentStreak === 5 || s.currentStreak === 10)) {
     setTimeout(function() {
-      showNudgeToast('<strong>' + s.currentStreak + ' wins in a row!</strong> The kingdom rallies behind you.');
+      showNudgeToast(s.currentStreak + ' wins in a row!', 'The kingdom rallies behind you.');
     }, 1500);
     return;
   }
 
   if (s.gamesPlayed === 5) {
     setTimeout(function() {
-      showNudgeToast('You\'ve played 5 games. <strong>Save your progress</strong> across devices soon.');
+      showNudgeToast('Save your progress', 'You\'ve played 5 games. Save across devices soon.');
     }, 2000);
     return;
   }

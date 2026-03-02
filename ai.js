@@ -157,6 +157,60 @@ class ChessAI {
     this.nodesSearched = 0;
   }
 
+  // Apply a move on the engine board for search (no captured-piece tracking).
+  // Returns a snapshot object to pass to undoSearchMove().
+  applySearchMove(move, nextTurn) {
+    const e = this.engine;
+    const piece = e.board[move.fr][move.fc];
+    const captured = e.board[move.tr][move.tc];
+    const epCapture = move.flags.enPassant ? e.board[move.fr][move.tc] : null;
+    const snap = {
+      piece, captured, epCapture,
+      castling: { ...e.castling },
+      enPassantTarget: e.enPassantTarget,
+      turn: e.turn
+    };
+
+    e.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
+    e.board[move.fr][move.fc] = null;
+    if (move.flags.enPassant) e.board[move.fr][move.tc] = null;
+    if (move.flags.castle) {
+      const row = piece.c === 'w' ? 7 : 0;
+      if (move.flags.castle === 'k') { e.board[row][5] = e.board[row][7]; e.board[row][7] = null; }
+      else { e.board[row][3] = e.board[row][0]; e.board[row][0] = null; }
+    }
+    if (piece.t === 'k') {
+      if (piece.c === 'w') { e.castling.wk = false; e.castling.wq = false; }
+      else { e.castling.bk = false; e.castling.bq = false; }
+    }
+    if (piece.t === 'r') {
+      if (move.fr===7&&move.fc===0) e.castling.wq=false;
+      if (move.fr===7&&move.fc===7) e.castling.wk=false;
+      if (move.fr===0&&move.fc===0) e.castling.bq=false;
+      if (move.fr===0&&move.fc===7) e.castling.bk=false;
+    }
+    e.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
+    e.turn = nextTurn;
+
+    return snap;
+  }
+
+  // Undo a search move using the snapshot from applySearchMove().
+  undoSearchMove(move, snap) {
+    const e = this.engine;
+    e.board[move.fr][move.fc] = snap.piece;
+    e.board[move.tr][move.tc] = snap.captured;
+    if (move.flags.enPassant) e.board[move.fr][move.tc] = snap.epCapture;
+    if (move.flags.castle) {
+      const row = snap.piece.c === 'w' ? 7 : 0;
+      if (move.flags.castle === 'k') { e.board[row][7] = e.board[row][5]; e.board[row][5] = null; }
+      else { e.board[row][0] = e.board[row][3]; e.board[row][3] = null; }
+    }
+    e.castling = snap.castling;
+    e.enPassantTarget = snap.enPassantTarget;
+    e.turn = snap.turn;
+  }
+
   evaluate() {
     let score = 0;
     for (let r = 0; r < 8; r++) {
@@ -208,42 +262,9 @@ class ChessAI {
     if (isMaximizing) {
       let maxEval = -Infinity;
       for (const move of allMoves) {
-        // Make move
-        const piece = this.engine.board[move.fr][move.fc];
-        const captured = this.engine.board[move.tr][move.tc];
-        const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-        const oldCastling = { ...this.engine.castling };
-        const oldEP = this.engine.enPassantTarget;
-        const oldTurn = this.engine.turn;
-
-        this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-        this.engine.board[move.fr][move.fc] = null;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-          else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-        }
-        // Update state
-        if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-        if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-        this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-        this.engine.turn = 'b';
-
+        const snap = this.applySearchMove(move, 'b');
         const eval_ = this.minimax(depth - 1, alpha, beta, false);
-
-        // Undo move
-        this.engine.board[move.fr][move.fc] = piece;
-        this.engine.board[move.tr][move.tc] = captured;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-          else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-        }
-        this.engine.castling = oldCastling;
-        this.engine.enPassantTarget = oldEP;
-        this.engine.turn = oldTurn;
+        this.undoSearchMove(move, snap);
 
         maxEval = Math.max(maxEval, eval_);
         alpha = Math.max(alpha, eval_);
@@ -253,39 +274,9 @@ class ChessAI {
     } else {
       let minEval = Infinity;
       for (const move of allMoves) {
-        const piece = this.engine.board[move.fr][move.fc];
-        const captured = this.engine.board[move.tr][move.tc];
-        const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-        const oldCastling = { ...this.engine.castling };
-        const oldEP = this.engine.enPassantTarget;
-        const oldTurn = this.engine.turn;
-
-        this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-        this.engine.board[move.fr][move.fc] = null;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-          else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-        }
-        if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-        if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-        this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-        this.engine.turn = 'w';
-
+        const snap = this.applySearchMove(move, 'w');
         const eval_ = this.minimax(depth - 1, alpha, beta, true);
-
-        this.engine.board[move.fr][move.fc] = piece;
-        this.engine.board[move.tr][move.tc] = captured;
-        if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-        if (move.flags.castle) {
-          const row = piece.c === 'w' ? 7 : 0;
-          if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-          else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-        }
-        this.engine.castling = oldCastling;
-        this.engine.enPassantTarget = oldEP;
-        this.engine.turn = oldTurn;
+        this.undoSearchMove(move, snap);
 
         minEval = Math.min(minEval, eval_);
         beta = Math.min(beta, eval_);
@@ -317,10 +308,7 @@ class ChessAI {
   getBestMove(depth, botColor) {
     // Check opening book first
     const bookMove = this.getBookMove(botColor);
-    if (bookMove) {
-      console.log('AI playing book move');
-      return bookMove;
-    }
+    if (bookMove) return bookMove;
 
     this.nodesSearched = 0;
     const isMaximizing = botColor === 'w';
@@ -332,39 +320,9 @@ class ChessAI {
     const evaluated = [];
 
     for (const move of allMoves) {
-      const piece = this.engine.board[move.fr][move.fc];
-      const captured = this.engine.board[move.tr][move.tc];
-      const epCapture = move.flags.enPassant ? this.engine.board[move.fr][move.tc] : null;
-      const oldCastling = { ...this.engine.castling };
-      const oldEP = this.engine.enPassantTarget;
-      const oldTurn = this.engine.turn;
-
-      this.engine.board[move.tr][move.tc] = move.flags.promotion ? { c: piece.c, t: 'q' } : piece;
-      this.engine.board[move.fr][move.fc] = null;
-      if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = null;
-      if (move.flags.castle) {
-        const row = piece.c === 'w' ? 7 : 0;
-        if (move.flags.castle === 'k') { this.engine.board[row][5] = this.engine.board[row][7]; this.engine.board[row][7] = null; }
-        else { this.engine.board[row][3] = this.engine.board[row][0]; this.engine.board[row][0] = null; }
-      }
-      if (piece.t === 'k') { if (piece.c === 'w') { this.engine.castling.wk = false; this.engine.castling.wq = false; } else { this.engine.castling.bk = false; this.engine.castling.bq = false; } }
-      if (piece.t === 'r') { if (move.fr===7&&move.fc===0) this.engine.castling.wq=false; if (move.fr===7&&move.fc===7) this.engine.castling.wk=false; if (move.fr===0&&move.fc===0) this.engine.castling.bq=false; if (move.fr===0&&move.fc===7) this.engine.castling.bk=false; }
-      this.engine.enPassantTarget = move.flags.doublePush ? [(move.fr + move.tr) / 2, move.tc] : null;
-      this.engine.turn = isMaximizing ? 'b' : 'w';
-
+      const snap = this.applySearchMove(move, isMaximizing ? 'b' : 'w');
       const eval_ = this.minimax(depth - 1, -Infinity, Infinity, !isMaximizing);
-
-      this.engine.board[move.fr][move.fc] = piece;
-      this.engine.board[move.tr][move.tc] = captured;
-      if (move.flags.enPassant) this.engine.board[move.fr][move.tc] = epCapture;
-      if (move.flags.castle) {
-        const row = piece.c === 'w' ? 7 : 0;
-        if (move.flags.castle === 'k') { this.engine.board[row][7] = this.engine.board[row][5]; this.engine.board[row][5] = null; }
-        else { this.engine.board[row][0] = this.engine.board[row][3]; this.engine.board[row][3] = null; }
-      }
-      this.engine.castling = oldCastling;
-      this.engine.enPassantTarget = oldEP;
-      this.engine.turn = oldTurn;
+      this.undoSearchMove(move, snap);
 
       evaluated.push({ move, eval: eval_ });
     }
@@ -377,7 +335,6 @@ class ChessAI {
     const topMoves = evaluated.filter(m => Math.abs(m.eval - bestEval) <= 15);
     const chosen = topMoves[Math.floor(Math.random() * topMoves.length)];
 
-    console.log(`AI searched ${this.nodesSearched} nodes, eval: ${chosen.eval}, top moves: ${topMoves.length}`);
     return chosen.move;
   }
 }
