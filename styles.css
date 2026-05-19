@@ -3,18 +3,20 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --text: #E8E4DF;
-  --text-dim: #9A948C;
-  --text-muted: #5C5850;
-  --bg: #111110;
-  --surface: rgba(20, 20, 18, 0.88);
-  --surface-hover: rgba(40, 38, 34, 0.9);
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(255, 255, 255, 0.16);
-  --accent: #D4A574;
-  --accent-dim: rgba(212, 165, 116, 0.4);
-  --danger: rgba(210, 90, 80, 0.6);
-  --danger-text: #E8A09A;
+  /* Light palette — Apple × board game (matches landing page) */
+  --text: #1F1810;
+  --text-dim: #6E6359;
+  --text-muted: #A99F93;
+  --bg: #F4EFE6;
+  --bg-elevated: #FBF8F1;
+  --surface: rgba(255, 251, 244, 0.85);
+  --surface-hover: rgba(255, 247, 235, 0.95);
+  --border: rgba(31, 24, 16, 0.10);
+  --border-hover: rgba(31, 24, 16, 0.22);
+  --accent: #B8842D;
+  --accent-dim: rgba(184, 132, 45, 0.45);
+  --danger: rgba(170, 70, 60, 0.55);
+  --danger-text: #8C3A30;
   --radius: 10px;
 }
 
@@ -40,30 +42,46 @@ body {
 }
 
 #game-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-family: 'Instrument Serif', Georgia, serif;
   font-weight: 400;
   font-style: italic;
-  font-size: 22px;
+  font-size: clamp(18px, 1.6vw, 22px);
+  line-height: 1;
   letter-spacing: 0.02em;
   color: var(--text);
   position: absolute;
-  top: 20px;
-  left: 20px;
-  opacity: 0.5;
+  top: 18px;
+  left: clamp(20px, 3vw, 40px);
+  opacity: 0.85;
   cursor: pointer;
   pointer-events: auto;
   text-decoration: none;
   transition: opacity 0.3s ease;
 }
 
-#game-title:hover { opacity: 0.8; }
+#game-title:hover { opacity: 1; }
+
+#game-title .brand-mark-icon,
+.brand-mark-icon {
+  height: 1.65em;
+  width: auto;
+  display: block;
+  /* Crown adds extra bbox height above the lion's head — nudge up so the
+     face visually centers on the wordmark baseline. */
+  margin-top: -0.08em;
+  -webkit-user-drag: none;
+  user-select: none;
+}
 
 /* ── About Modal ── */
 .about-overlay {
   position: fixed;
   inset: 0;
   z-index: 6000;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(31, 24, 16, 0.32);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +102,7 @@ body {
   width: 100%;
   text-align: center;
   padding: 44px 36px 36px;
-  background: rgba(22, 22, 20, 0.95);
+  background: rgba(255, 251, 244, 0.97);
   border: 1px solid var(--border);
   border-radius: 14px;
   backdrop-filter: blur(40px);
@@ -123,7 +141,7 @@ body {
 .about-close:hover {
   color: var(--text);
   border-color: var(--border-hover);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(31, 24, 16, 0.04);
 }
 
 .about-logo {
@@ -186,35 +204,65 @@ body {
 
 .nav-links {
   position: absolute;
-  top: 20px;
-  right: 20px;
+  top: 22px;
+  right: clamp(20px, 3vw, 40px);
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: clamp(18px, 2.4vw, 32px);
   pointer-events: auto;
 }
 
+/* Clean text-style nav link — matches the landing's .landing-nav a */
 .nav-link {
   font-family: 'DM Sans', sans-serif;
-  font-size: 12px;
+  font-size: clamp(11px, 0.95vw, 12px);
   font-weight: 500;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--text-dim);
   text-decoration: none;
-  padding: 9px 20px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: all 0.2s ease;
   cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  transition: color 0.2s ease;
 }
 
-.nav-link:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-hover);
-  color: var(--text);
+.nav-link:hover { color: var(--text); }
+
+/* Primary pill CTA — matches the landing's .cta-primary (used for "New Game") */
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 28px;
+  border: 1px solid var(--text);
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: clamp(11px, 0.9vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(31, 24, 16, 0.10),
+              0 6px 16px rgba(31, 24, 16, 0.08);
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+              box-shadow 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.nav-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(31, 24, 16, 0.10),
+              0 12px 28px rgba(31, 24, 16, 0.15);
+}
+
+.nav-cta:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(31, 24, 16, 0.12);
 }
 
 .btn {
@@ -300,7 +348,7 @@ body {
   position: fixed;
   inset: 0;
   z-index: 5000;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(31, 24, 16, 0.28);
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -319,7 +367,7 @@ body {
   z-index: 5001;
   width: 480px;
   max-width: 92vw;
-  background: rgba(24, 24, 22, 0.97);
+  background: rgba(255, 251, 244, 0.97);
   border-left: 1px solid var(--border);
   backdrop-filter: blur(40px);
   -webkit-backdrop-filter: blur(40px);
@@ -337,7 +385,7 @@ body {
 
 .legal-drawer::-webkit-scrollbar { width: 4px; }
 .legal-drawer::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(31, 24, 16, 0.10);
   border-radius: 2px;
 }
 
@@ -348,7 +396,7 @@ body {
   padding: 24px 0 20px;
   position: sticky;
   top: 0;
-  background: rgba(24, 24, 22, 0.97);
+  background: rgba(255, 251, 244, 0.97);
   z-index: 1;
 }
 
@@ -381,7 +429,7 @@ body {
 .legal-close:hover {
   color: var(--text);
   border-color: var(--border-hover);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(31, 24, 16, 0.04);
 }
 
 .legal-updated {

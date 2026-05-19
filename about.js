@@ -25,15 +25,8 @@
     });
 
     document.body.appendChild(overlay);
-
-    // Bind the logo
-    const logo = document.getElementById('game-title');
-    if (logo) {
-      logo.addEventListener('click', function (e) {
-        e.preventDefault();
-        openAbout();
-      });
-    }
+    // (The brand/logo now links to the homepage. About is triggered by
+    // the explicit "About" nav item via onclick="openAbout()".)
   }
 
   function openAbout() {
@@ -44,6 +37,16 @@
     document.getElementById('about-overlay').classList.remove('active');
   }
 
+  // Global "New Game" — resets the board if we're already on the play page,
+  // otherwise navigates to it.
+  function newGame() {
+    if (typeof window.resetGame === 'function') {
+      window.resetGame();
+    } else {
+      window.location.href = 'play.html';
+    }
+  }
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && document.getElementById('about-overlay')?.classList.contains('active')) {
       closeAbout();
@@ -52,6 +55,7 @@
 
   window.openAbout = openAbout;
   window.closeAbout = closeAbout;
+  window.newGame = newGame;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', injectAbout);

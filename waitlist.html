@@ -40,7 +40,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(17, 17, 16, 0.3);
+    background: rgba(244, 239, 230, 0.55);
     opacity: 0;
     animation: bgReveal 1.2s ease 0.2s forwards;
   }
@@ -54,7 +54,7 @@
     position: fixed;
     inset: 0;
     z-index: 1;
-    background: rgba(17, 17, 16, 0.7);
+    background: rgba(31, 24, 16, 0.30);
     opacity: 0;
     pointer-events: none;
     transition: opacity 1s ease;
@@ -165,7 +165,7 @@
     font-size: 13px;
     font-weight: 400;
     color: var(--text);
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(31, 24, 16, 0.03);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 12px 16px;
@@ -179,27 +179,37 @@
 
   .waitlist-input:focus {
     border-color: var(--accent-dim);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(31, 24, 16, 0.05);
   }
 
   .waitlist-submit {
     font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.04em;
-    color: var(--text-dim);
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 12px 24px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--text);
+    border: 1px solid var(--text);
+    border-radius: 999px;
+    padding: 13px 30px;
     cursor: pointer;
-    transition: all 0.2s ease;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(31, 24, 16, 0.10),
+                0 6px 16px rgba(31, 24, 16, 0.08);
+    transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .waitlist-submit:hover {
-    border-color: var(--border-hover);
-    color: var(--text);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(31, 24, 16, 0.10),
+                0 12px 28px rgba(31, 24, 16, 0.15);
+  }
+
+  .waitlist-submit:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(31, 24, 16, 0.12);
   }
 
   .waitlist-privacy {
@@ -276,13 +286,14 @@
 
 <!-- Navigation -->
 <div id="top-bar">
-  <a id="game-title" href="#">Chessbuds</a>
+  <a id="game-title" href="index.html">
+    <img class="brand-mark-icon" src="Chessbuds Icons/King Icon.png" alt="">
+    <span>Chessbuds</span>
+  </a>
   <div class="nav-links">
     <a class="nav-link" href="characters.html">Characters</a>
-    <a class="nav-link" href="index.html">Play Game</a>
-    <a class="profile-node" href="index.html" title="Profile">
-      <img class="profile-node-icon" src="King Favicon.png" alt="Profile">
-    </a>
+    <span class="nav-link" onclick="openAbout()">About</span>
+    <span class="nav-link" onclick="newGame()">New Game</span>
   </div>
 </div>
 
@@ -322,7 +333,7 @@
   </div>
 
   <div class="waitlist-footer">
-    <a href="index.html">Play Game</a>
+    <a href="play.html">Play Game</a>
   </div>
 
 </div>

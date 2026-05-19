@@ -95,8 +95,8 @@
     aspect-ratio: 5 / 7;
     border-radius: 16px;
     overflow: hidden;
-    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(168deg, #FBF8F1 0%, #F4EFE6 40%, #EFE9DD 100%);
+    border: 1px solid rgba(31, 24, 16, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -105,25 +105,25 @@
   }
 
   .char-card:hover .card-face {
-    border-color: rgba(212, 165, 116, 0.25);
+    border-color: rgba(184, 132, 45, 0.25);
     box-shadow:
-      0 25px 50px rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(212, 165, 116, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      0 25px 50px rgba(31, 24, 16, 0.13),
+      0 0 0 1px rgba(184, 132, 45, 0.1),
+      inset 0 1px 0 rgba(31, 24, 16, 0.06);
   }
 
   /* Inner card frame — playing card border */
   .card-frame {
     position: absolute;
     inset: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(31, 24, 16, 0.06);
     border-radius: 10px;
     pointer-events: none;
     transition: border-color 0.4s ease;
   }
 
   .char-card:hover .card-frame {
-    border-color: rgba(212, 165, 116, 0.12);
+    border-color: rgba(184, 132, 45, 0.12);
   }
 
   /* Corner accents */
@@ -187,12 +187,12 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    filter: drop-shadow(0 6px 20px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(0 6px 20px rgba(31, 24, 16, 0.13));
     transition: filter 0.4s ease;
   }
 
   .char-card:hover .char-img-wrap img {
-    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 40px rgba(212, 165, 116, 0.08));
+    filter: drop-shadow(0 10px 30px rgba(31, 24, 16, 0.16)) drop-shadow(0 0 40px rgba(184, 132, 45, 0.08));
   }
 
   /* Spotlight glow behind character */
@@ -203,7 +203,7 @@
     transform: translate(-50%, -50%);
     width: 70%;
     height: 70%;
-    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.04) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(184, 132, 45, 0.04) 0%, transparent 70%);
     pointer-events: none;
     transition: opacity 0.4s ease;
     opacity: 0;
@@ -220,9 +220,9 @@
     background-size: cover;
     background-position: center;
     border-radius: 16px;
-    opacity: 0.15;
-    filter: blur(1.5px) saturate(0.5) brightness(0.6);
-    transition: opacity 0.6s ease, filter 0.6s ease;
+    opacity: 0.55;
+    filter: blur(0.4px) saturate(0.85);
+    transition: opacity 0.5s ease, filter 0.5s ease;
     z-index: 0;
   }
 
@@ -231,17 +231,19 @@
     position: absolute;
     inset: 0;
     border-radius: 16px;
-    background: linear-gradient(to top,
-      rgba(14, 14, 13, 0.95) 0%,
-      rgba(14, 14, 13, 0.6) 40%,
-      rgba(14, 14, 13, 0.4) 70%,
-      rgba(14, 14, 13, 0.55) 100%
+    /* Lighter cream wash — bg image now reads clearly on light theme,
+       with just enough fade at top + bottom to keep character readable. */
+    background: linear-gradient(to bottom,
+      rgba(251, 248, 241, 0.50) 0%,
+      rgba(251, 248, 241, 0.08) 35%,
+      rgba(244, 239, 230, 0.10) 65%,
+      rgba(244, 239, 230, 0.78) 100%
     );
   }
 
   .char-card:hover .card-bg {
-    opacity: 0.5;
-    filter: blur(0.5px) saturate(0.7) brightness(0.7);
+    opacity: 0.85;
+    filter: blur(0px) saturate(1);
   }
 
   /* Holographic shine overlay */
@@ -255,11 +257,11 @@
     transition: opacity 0.3s ease;
     background: radial-gradient(
       circle at var(--shine-x, 50%) var(--shine-y, 50%),
-      rgba(255, 255, 255, 0.12) 0%,
-      rgba(212, 165, 116, 0.06) 25%,
+      rgba(184, 132, 45, 0.18) 0%,
+      rgba(184, 132, 45, 0.08) 25%,
       transparent 60%
     );
-    mix-blend-mode: screen;
+    mix-blend-mode: multiply;
   }
 
   .char-card:hover .card-shine {
@@ -275,7 +277,7 @@
     padding: 20px 20px 22px;
     text-align: center;
     z-index: 2;
-    background: linear-gradient(to top, rgba(14, 14, 13, 0.95) 0%, rgba(14, 14, 13, 0.6) 60%, transparent 100%);
+    background: linear-gradient(to top, rgba(244, 239, 230, 0.95) 0%, rgba(244, 239, 230, 0.6) 60%, transparent 100%);
   }
 
   .card-name-bar .char-name {
@@ -364,8 +366,8 @@
     align-items: center;
     justify-content: center;
     border-radius: 20px;
-    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: linear-gradient(168deg, #FBF8F1 0%, #F4EFE6 40%, #EFE9DD 100%);
+    border: 1px solid rgba(31, 24, 16, 0.08);
     overflow: hidden;
   }
 
@@ -373,7 +375,7 @@
     content: '';
     position: absolute;
     inset: 10px;
-    border: 1px solid rgba(212, 165, 116, 0.1);
+    border: 1px solid rgba(184, 132, 45, 0.1);
     border-radius: 14px;
     pointer-events: none;
     z-index: 3;
@@ -387,7 +389,7 @@
     transform: translate(-50%, -50%);
     width: 70%;
     height: 70%;
-    background: radial-gradient(ellipse, rgba(212, 165, 116, 0.06) 0%, transparent 70%);
+    background: radial-gradient(ellipse, rgba(184, 132, 45, 0.06) 0%, transparent 70%);
     pointer-events: none;
     z-index: 2;
   }
@@ -398,8 +400,8 @@
     background-size: cover;
     background-position: center;
     border-radius: 20px;
-    opacity: 0.35;
-    filter: blur(1px) saturate(0.6) brightness(0.55);
+    opacity: 0.7;
+    filter: blur(0.4px) saturate(0.9);
     z-index: 0;
   }
 
@@ -408,11 +410,11 @@
     position: absolute;
     inset: 0;
     border-radius: 20px;
-    background: linear-gradient(to top,
-      rgba(14, 14, 13, 0.85) 0%,
-      rgba(14, 14, 13, 0.35) 40%,
-      rgba(14, 14, 13, 0.25) 65%,
-      rgba(14, 14, 13, 0.45) 100%
+    background: linear-gradient(to bottom,
+      rgba(251, 248, 241, 0.30) 0%,
+      rgba(251, 248, 241, 0.05) 40%,
+      rgba(244, 239, 230, 0.08) 65%,
+      rgba(244, 239, 230, 0.55) 100%
     );
   }
 
@@ -422,7 +424,7 @@
     max-width: 70%;
     max-height: 80%;
     object-fit: contain;
-    filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.4));
+    filter: drop-shadow(0 12px 40px rgba(31, 24, 16, 0.12));
     animation: floatPiece 6s ease-in-out infinite;
   }
 
@@ -514,7 +516,7 @@
   .piece-info {
     padding: 24px;
     border-radius: 16px;
-    background: linear-gradient(168deg, rgba(26, 26, 24, 0.6) 0%, rgba(20, 20, 18, 0.4) 100%);
+    background: linear-gradient(168deg, rgba(255, 251, 244, 0.6) 0%, rgba(244, 239, 230, 0.4) 100%);
     border: 1px solid var(--border);
   }
 
@@ -532,7 +534,7 @@
     height: 44px;
     object-fit: contain;
     opacity: 0.85;
-    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+    filter: drop-shadow(0 2px 8px rgba(31, 24, 16, 0.10));
   }
 
   .piece-info-role {
@@ -562,7 +564,7 @@
     justify-content: space-between;
     align-items: baseline;
     padding: 12px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    border-bottom: 1px solid rgba(31, 24, 16, 0.06);
   }
 
   .piece-stat:last-child { border-bottom: none; }
@@ -617,17 +619,17 @@
   .piece-move-cell {
     aspect-ratio: 1;
     border-radius: 3px;
-    background: rgba(255, 255, 255, 0.025);
+    background: rgba(31, 24, 16, 0.03);
   }
 
   .piece-move-cell.active {
-    background: rgba(212, 165, 116, 0.2);
-    box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.25);
+    background: rgba(184, 132, 45, 0.2);
+    box-shadow: inset 0 0 0 1px rgba(184, 132, 45, 0.25);
   }
 
   .piece-move-cell.center {
-    background: rgba(212, 165, 116, 0.45);
-    box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.5);
+    background: rgba(184, 132, 45, 0.45);
+    box-shadow: inset 0 0 0 1px rgba(184, 132, 45, 0.5);
     border-radius: 4px;
   }
 
@@ -648,7 +650,7 @@
     min-height: 400px;
     border-radius: 16px;
     overflow: hidden;
-    background: linear-gradient(168deg, #141413 0%, #0f0f0e 50%, #0c0c0b 100%);
+    background: linear-gradient(168deg, #F4EFE6 0%, #EFE9DD 50%, #EAE3D5 100%);
     border: 1px solid var(--border);
     cursor: grab;
   }
@@ -758,7 +760,7 @@
     cursor: pointer;
     border-radius: 12px;
     overflow: hidden;
-    background: linear-gradient(168deg, #1a1a18 0%, #141413 40%, #0f0f0e 100%);
+    background: linear-gradient(168deg, #FBF8F1 0%, #F4EFE6 40%, #EFE9DD 100%);
     border: 1px solid var(--border);
     aspect-ratio: 5 / 7;
     display: flex;
@@ -770,9 +772,9 @@
   }
 
   .other-card:hover {
-    border-color: rgba(212, 165, 116, 0.25);
+    border-color: rgba(184, 132, 45, 0.25);
     transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px rgba(31, 24, 16, 0.12);
   }
 
   .other-card img {
@@ -781,7 +783,7 @@
     max-width: 60%;
     max-height: 55%;
     object-fit: contain;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+    filter: drop-shadow(0 4px 10px rgba(31, 24, 16, 0.12));
     transition: transform 0.3s ease;
   }
 
@@ -797,7 +799,7 @@
     z-index: 1;
     padding: 10px 6px;
     text-align: center;
-    background: linear-gradient(to top, rgba(14,14,13,0.95), transparent);
+    background: linear-gradient(to top, rgba(244, 239, 230, 0.95), transparent);
     font-family: 'Instrument Serif', Georgia, serif;
     font-style: italic;
     font-size: 12px;
@@ -816,8 +818,8 @@
     background-size: cover;
     background-position: center;
     border-radius: 12px;
-    opacity: 0.12;
-    filter: blur(1px) saturate(0.4) brightness(0.5);
+    opacity: 0.5;
+    filter: blur(0.4px) saturate(0.85);
     transition: opacity 0.4s ease, filter 0.4s ease;
     z-index: 0;
   }
@@ -827,12 +829,16 @@
     position: absolute;
     inset: 0;
     border-radius: 12px;
-    background: linear-gradient(to top, rgba(14, 14, 13, 0.95) 0%, rgba(14, 14, 13, 0.5) 100%);
+    background: linear-gradient(to bottom,
+      rgba(251, 248, 241, 0.35) 0%,
+      rgba(251, 248, 241, 0.05) 50%,
+      rgba(244, 239, 230, 0.70) 100%
+    );
   }
 
   .other-card:hover .other-card-bg {
-    opacity: 0.3;
-    filter: blur(0px) saturate(0.6) brightness(0.6);
+    opacity: 0.85;
+    filter: blur(0px) saturate(1);
   }
 
   /* ── Bottom CTA Section ── */
@@ -939,13 +945,14 @@
 
 <!-- Navigation -->
 <div id="top-bar">
-  <a id="game-title" href="#">Chessbuds</a>
+  <a id="game-title" href="index.html">
+    <img class="brand-mark-icon" src="Chessbuds Icons/King Icon.png" alt="">
+    <span>Chessbuds</span>
+  </a>
   <div class="nav-links">
     <a class="nav-link" href="characters.html">Characters</a>
-    <a class="nav-link" href="index.html">Play Game</a>
-    <a class="profile-node" href="index.html" title="Profile">
-      <img class="profile-node-icon" src="King Favicon.png" alt="Profile">
-    </a>
+    <span class="nav-link" onclick="openAbout()">About</span>
+    <span class="nav-link" onclick="newGame()">New Game</span>
   </div>
 </div>
 
