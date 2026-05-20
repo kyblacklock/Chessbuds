@@ -55,7 +55,7 @@ permalink: /characters/
   #shelf-view {
     max-width: 1060px;
     margin: 0 auto;
-    padding: 40px 40px 120px;
+    padding: 40px 40px 64px;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 40px 36px;
@@ -859,18 +859,23 @@ permalink: /characters/
     filter: blur(0px) saturate(1);
   }
 
-  /* ── Bottom CTA Section ── */
-  .detail-cta {
-    margin-top: 32px;
-    padding: 24px 24px 28px;
+  /* ── Shelf bottom CTA (appears below the character grid) ── */
+  .shelf-cta {
+    max-width: 1060px;
+    margin: 0 auto;
+    padding: 40px 40px 96px;
     text-align: center;
     border-top: 1px solid var(--border);
-    opacity: 0;
-    transform: translateY(10px);
-    animation: fadeUp 0.5s ease 0.6s forwards;
+    transition: opacity 0.5s ease, transform 0.5s ease;
   }
 
-  .detail-cta-sub {
+  /* Hide alongside the grid when a detail view is open. */
+  #shelf-view.hidden + .shelf-cta {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .shelf-cta-sub {
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.06em;
@@ -879,7 +884,7 @@ permalink: /characters/
     margin-bottom: 16px;
   }
 
-  .detail-cta a {
+  .shelf-cta a {
     display: inline-block;
     font-family: 'DM Sans', sans-serif;
     font-size: 13px;
@@ -894,7 +899,7 @@ permalink: /characters/
     transition: all 0.2s ease;
   }
 
-  .detail-cta a:hover {
+  .shelf-cta a:hover {
     border-color: var(--border-hover);
     color: var(--text);
   }
@@ -983,6 +988,12 @@ permalink: /characters/
 <!-- Shelf View -->
 <div id="shelf-view"></div>
 
+<!-- Shelf bottom CTA — promotes the waitlist after browsing the cast -->
+<div class="shelf-cta">
+  <p class="shelf-cta-sub">New Chessbuds are on the way</p>
+  <a href="waitlist/">More Chessbuds</a>
+</div>
+
 <!-- Detail View -->
 <div id="detail-view">
   <button class="detail-back" onclick="hideDetail()">
@@ -1036,12 +1047,6 @@ permalink: /characters/
   <div class="detail-others" id="detail-others">
     <div class="detail-others-label">Other Characters</div>
     <div class="detail-others-grid" id="detail-others-grid"></div>
-  </div>
-
-  <!-- Bottom CTA -->
-  <div class="detail-cta">
-    <p class="detail-cta-sub">New Chessbuds are on the way</p>
-    <a href="waitlist/">More Chessbuds</a>
   </div>
 </div>
 
@@ -1297,7 +1302,7 @@ function showDetail(key) {
   void detailView.offsetWidth;
   detailView.classList.add('active');
 
-  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio, .detail-piece-section, .detail-others, .detail-cta').forEach(el => {
+  detailView.querySelectorAll('.detail-role, .detail-name, .detail-epithet, .detail-divider, .detail-bio, .detail-piece-section, .detail-others').forEach(el => {
     el.style.animation = 'none';
     void el.offsetWidth;
     el.style.animation = '';
