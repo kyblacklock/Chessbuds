@@ -1342,6 +1342,40 @@ let viewerScene, viewerCamera, viewerRenderer, viewerControls;
 let viewerPiece, viewerAnimId;
 let viewerInitialized = false;
 
+// Helpers — chess-board floor matching the homepage hero viewer.
+function makeBoardTexture() {
+  const size = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const ctx = cv.getContext('2d');
+  const sq = size / 8;
+  ctx.fillStyle = '#FBF6EC';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#E2D7C0';
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if ((r + c) % 2 === 1) ctx.fillRect(c * sq, r * sq, sq, sq);
+    }
+  }
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
+}
+function makeBoardAlphaMap() {
+  const size = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = size;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(size/2, size/2, size*0.10, size/2, size/2, size*0.48);
+  g.addColorStop(0,    '#FFFFFF');
+  g.addColorStop(0.55, '#FFFFFF');
+  g.addColorStop(1,    '#000000');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(cv);
+}
+
 function initViewer() {
   const container = document.getElementById('piece-viewer-container');
   const rect = container.getBoundingClientRect();
@@ -1356,6 +1390,8 @@ function initViewer() {
   viewerRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   viewerRenderer.toneMapping = THREE.ACESFilmicToneMapping;
   viewerRenderer.toneMappingExposure = 1.2;
+  viewerRenderer.shadowMap.enabled = true;
+  viewerRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.insertBefore(viewerRenderer.domElement, container.firstChild);
 
   viewerControls = new OrbitControls(viewerCamera, viewerRenderer.domElement);
@@ -1382,6 +1418,16 @@ function initViewer() {
 
   const key = new THREE.DirectionalLight(0xFFCC88, 2.0);
   key.position.set(4, 10, 6);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.camera.near = 1;
+  key.shadow.camera.far = 22;
+  key.shadow.camera.left = -4;
+  key.shadow.camera.right = 4;
+  key.shadow.camera.top = 4;
+  key.shadow.camera.bottom = -4;
+  key.shadow.bias = -0.0008;
+  key.shadow.radius = 6;
   viewerScene.add(key);
 
   const fill = new THREE.DirectionalLight(0x8899BB, 0.6);
@@ -1392,14 +1438,24 @@ function initViewer() {
   rim.position.set(-2, 4, 8);
   viewerScene.add(rim);
 
-  // Ground plane (subtle)
-  const groundGeo = new THREE.CircleGeometry(3, 48);
-  const groundMat = new THREE.MeshStandardMaterial({
-    color: 0x1a1816, roughness: 0.9, metalness: 0
-  });
-  const ground = new THREE.Mesh(groundGeo, groundMat);
+  // Subtle chess-board floor — same as the homepage hero viewer.
+  // 8x8 cream/warm squares with a radial alpha vignette so it fades
+  // into the page background rather than ending in a hard edge.
+  const boardSize = 6.0;
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(boardSize, boardSize),
+    new THREE.MeshStandardMaterial({
+      map: makeBoardTexture(),
+      alphaMap: makeBoardAlphaMap(),
+      roughness: 0.92,
+      metalness: 0.0,
+      transparent: true,
+      depthWrite: false
+    })
+  );
   ground.rotation.x = -Math.PI / 2;
-  ground.position.y = 0;
+  ground.position.y = -0.001;  // just below piece origin to avoid z-fighting
+  ground.receiveShadow = true;
   viewerScene.add(ground);
 
   viewerInitialized = true;
