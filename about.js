@@ -43,7 +43,7 @@
     if (typeof window.resetGame === 'function') {
       window.resetGame();
     } else {
-      window.location.href = 'play.html';
+      window.location.href = 'play/';
     }
   }
 
