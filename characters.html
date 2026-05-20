@@ -195,7 +195,19 @@ permalink: /characters/
     object-fit: contain;
     filter: drop-shadow(0 6px 20px rgba(31, 24, 16, 0.13));
     transition: filter 0.4s ease;
+    /* Subtle idle float, same easing as the detail view piece. Negative
+       per-card delays below offset each card's phase so the six pieces
+       drift independently rather than bobbing in unison. */
+    animation: floatPiece 6s ease-in-out infinite;
+    will-change: transform;
   }
+
+  .char-card:nth-child(1) .char-img-wrap img { animation-delay: 0s; }
+  .char-card:nth-child(2) .char-img-wrap img { animation-delay: -1s; }
+  .char-card:nth-child(3) .char-img-wrap img { animation-delay: -2s; }
+  .char-card:nth-child(4) .char-img-wrap img { animation-delay: -3s; }
+  .char-card:nth-child(5) .char-img-wrap img { animation-delay: -4s; }
+  .char-card:nth-child(6) .char-img-wrap img { animation-delay: -5s; }
 
   .char-card:hover .char-img-wrap img {
     filter: drop-shadow(0 10px 30px rgba(31, 24, 16, 0.16)) drop-shadow(0 0 40px rgba(184, 132, 45, 0.08));
