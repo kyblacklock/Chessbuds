@@ -256,22 +256,44 @@ permalink: /waitlist/
     margin-top: 32px;
   }
 
-  .waitlist-footer a {
+  .waitlist-footer a,
+  .waitlist-footer a:link,
+  .waitlist-footer a:visited {
     display: inline-block;
     font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 500;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
     color: var(--bg);
     background: var(--text);
+    border: 1px solid var(--text);
     text-decoration: none;
-    padding: 14px 40px;
-    border-radius: var(--radius);
-    transition: all 0.2s ease;
+    padding: 13px 32px;
+    border-radius: 999px;
+    box-shadow: 0 1px 2px rgba(31, 24, 16, 0.10),
+                0 6px 16px rgba(31, 24, 16, 0.08);
+    transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1),
+                box-shadow 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
-  .waitlist-footer a:hover {
-    background: #fff;
+  .waitlist-footer a:hover,
+  .waitlist-footer a:focus,
+  .waitlist-footer a:focus-visible {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(31, 24, 16, 0.10),
+                0 12px 28px rgba(31, 24, 16, 0.15);
+    outline: none;
+  }
+
+  .waitlist-footer a:active {
+    background: var(--text);
+    color: var(--bg);
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(31, 24, 16, 0.12);
   }
 
   /* ── Animations ── */
