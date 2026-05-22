@@ -553,10 +553,8 @@ permalink: /play/
     z-index: 4001;
     width: 340px;
     max-width: 90vw;
-    background: rgba(255, 251, 244, 0.97);
+    background: var(--bg);
     border-left: 1px solid var(--border);
-    backdrop-filter: blur(40px);
-    -webkit-backdrop-filter: blur(40px);
     transform: translateX(100%);
     transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
     overflow-y: auto;
@@ -582,7 +580,7 @@ permalink: /play/
     padding: 24px 0 20px;
     position: sticky;
     top: 0;
-    background: rgba(255, 251, 244, 0.97);
+    background: var(--bg);
     z-index: 1;
   }
 
@@ -1000,8 +998,8 @@ permalink: /play/
   <div class="nav-links">
     <a class="nav-link" href="characters/">Characters</a>
     <span class="nav-link" onclick="openAbout()">About</span>
-    <span class="nav-link" onclick="toggleProfileDrawer()">Profile</span>
     <span class="nav-link" onclick="newGame()">New Game</span>
+    <span class="nav-link" onclick="toggleProfileDrawer()">Profile</span>
   </div>
 </div>
 
