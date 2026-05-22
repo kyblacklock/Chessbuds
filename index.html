@@ -32,7 +32,15 @@
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/loaders/STLLoader.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/utils/BufferGeometryUtils.js" crossorigin>
 <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.162.0/examples/jsm/controls/OrbitControls.js" crossorigin>
+<!-- Loader cycles through all six piece icons — preload King at high
+     priority (first one shown), the rest at idle so they're ready in
+     time for the cycle. -->
 <link rel="preload" href="Piece Icons/Black/King Icon Black.png" as="image" fetchpriority="high">
+<link rel="preload" href="Piece Icons/Black/Queen Icon Black.png" as="image">
+<link rel="preload" href="Piece Icons/Black/Bishop Icon Black.png" as="image">
+<link rel="preload" href="Piece Icons/Black/Knight Icon Black.png" as="image">
+<link rel="preload" href="Piece Icons/Black/Rook Icon Black.png" as="image">
+<link rel="preload" href="Piece Icons/Black/Pawn Icon Black.png" as="image">
 <link rel="preload" href="King.stl" as="fetch" fetchpriority="high">
 
 <!-- Warm up the game while the landing is visible. Three.js + King.stl are
@@ -297,25 +305,41 @@
     visibility: hidden;
     transition: opacity 0.6s ease, visibility 0s linear 0.6s;
   }
-  .loading-icon {
+  /* Cycle through all six piece icons with a soft crossfade. Each icon
+     has its own slot in a 6s loop; offsets stagger them by ~1s so they
+     enter in sequence with a brief overlap between adjacent icons. */
+  .loading-icon-stack {
+    position: relative;
     width: clamp(80px, 8vw, 112px);
     height: clamp(80px, 8vw, 112px);
-    object-fit: contain;
-    animation: icon-glow 2.4s ease-in-out infinite;
   }
-  @keyframes icon-glow {
-    0%, 100% {
-      opacity: 0.78;
-      filter: drop-shadow(0 0 8px rgba(184, 132, 45, 0.22));
-    }
-    33% {
-      opacity: 1;
-      filter: drop-shadow(0 0 22px rgba(220, 150, 80, 0.55));
-    }
-    66% {
-      opacity: 0.92;
-      filter: drop-shadow(0 0 16px rgba(176, 110, 60, 0.42));
-    }
+  .loading-icon-stack img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    animation: icon-cycle 6s ease-in-out infinite;
+    will-change: opacity, transform, filter;
+  }
+  .loading-icon-stack img:nth-child(1) { animation-delay:  0s; } /* King */
+  .loading-icon-stack img:nth-child(2) { animation-delay: -5s; } /* Queen */
+  .loading-icon-stack img:nth-child(3) { animation-delay: -4s; } /* Bishop */
+  .loading-icon-stack img:nth-child(4) { animation-delay: -3s; } /* Knight */
+  .loading-icon-stack img:nth-child(5) { animation-delay: -2s; } /* Rook */
+  .loading-icon-stack img:nth-child(6) { animation-delay: -1s; } /* Pawn */
+
+  @keyframes icon-cycle {
+    0%   { opacity: 0; transform: scale(0.94);
+           filter: drop-shadow(0 0 6px rgba(184, 132, 45, 0.18)); }
+    5%   { opacity: 1; transform: scale(1.0);
+           filter: drop-shadow(0 0 22px rgba(220, 150, 80, 0.55)); }
+    14%  { opacity: 1; transform: scale(1.0);
+           filter: drop-shadow(0 0 22px rgba(220, 150, 80, 0.55)); }
+    20%  { opacity: 0; transform: scale(0.94);
+           filter: drop-shadow(0 0 6px rgba(184, 132, 45, 0.18)); }
+    100% { opacity: 0; transform: scale(0.94); }
   }
   .loading-bar {
     width: 180px;
@@ -502,7 +526,14 @@
 <body>
 
 <div class="page-loader" id="page-loader" aria-hidden="true">
-  <img class="loading-icon" src="Piece Icons/Black/King Icon Black.png" alt="">
+  <div class="loading-icon-stack">
+    <img src="Piece Icons/Black/King Icon Black.png"   alt="">
+    <img src="Piece Icons/Black/Queen Icon Black.png"  alt="">
+    <img src="Piece Icons/Black/Bishop Icon Black.png" alt="">
+    <img src="Piece Icons/Black/Knight Icon Black.png" alt="">
+    <img src="Piece Icons/Black/Rook Icon Black.png"   alt="">
+    <img src="Piece Icons/Black/Pawn Icon Black.png"   alt="">
+  </div>
   <div class="loading-bar"><div class="loading-bar-fill" id="loading-bar-fill"></div></div>
   <div class="loading-percent" id="loading-percent">0</div>
 </div>
