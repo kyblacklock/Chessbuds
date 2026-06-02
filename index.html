@@ -309,23 +309,30 @@
   }
 
   /* Subtle chess-board pattern revealed under the cursor (loader only).
-     Uses the landing 3D board colors. --mx/--my are updated from JS. */
+     Tone-on-tone with the landing's warm ivory bg.
+     --mx/--my are updated from JS. */
   .loader-checker {
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 1;
     background-image:
-      linear-gradient(45deg, rgba(107, 66, 38, 0.32) 25%, transparent 25%),
-      linear-gradient(-45deg, rgba(107, 66, 38, 0.32) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, rgba(107, 66, 38, 0.32) 75%),
-      linear-gradient(-45deg, transparent 75%, rgba(107, 66, 38, 0.32) 75%);
-    background-size: 36px 36px;
-    background-position: 0 0, 0 18px, 18px -18px, -18px 0;
-    -webkit-mask-image: radial-gradient(circle 220px at var(--mx) var(--my),
-      rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, transparent 100%);
-    mask-image: radial-gradient(circle 220px at var(--mx) var(--my),
-      rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, transparent 100%);
+      linear-gradient(45deg, rgba(31, 24, 16, 0.06) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(31, 24, 16, 0.06) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(31, 24, 16, 0.06) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(31, 24, 16, 0.06) 75%);
+    background-size: 72px 72px;
+    background-position: 0 0, 0 36px, 36px -36px, -36px 0;
+    -webkit-mask-image: radial-gradient(circle 340px at var(--mx) var(--my),
+      rgba(0,0,0,0.9) 0%,
+      rgba(0,0,0,0.55) 35%,
+      rgba(0,0,0,0.18) 70%,
+      transparent 100%);
+    mask-image: radial-gradient(circle 340px at var(--mx) var(--my),
+      rgba(0,0,0,0.9) 0%,
+      rgba(0,0,0,0.55) 35%,
+      rgba(0,0,0,0.18) 70%,
+      transparent 100%);
     transition: opacity 0.4s ease;
   }
   body.page-ready .page-loader {
