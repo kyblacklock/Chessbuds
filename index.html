@@ -296,12 +296,37 @@
     align-items: center;
     justify-content: center;
     gap: 32px;
-    pointer-events: none;
+    pointer-events: auto;
     transition: opacity 0.6s ease;
+    overflow: hidden;
+    --mx: -300px;
+    --my: -300px;
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="%23B8842D" fill-opacity="0.88"/><rect x="6.5" y="6.5" width="11" height="11" rx="1" fill="none" stroke="%231F1810" stroke-opacity="0.35" stroke-width="0.6"/></svg>') 12 12, auto;
     /* Match body bg layering so the fade-out reveals the same warm field */
     background-image:
       radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 245, 220, 0.55) 0%, transparent 60%),
       radial-gradient(ellipse 70% 50% at 100% 100%, rgba(216, 180, 130, 0.18) 0%, transparent 60%);
+  }
+
+  /* Subtle chess-board pattern revealed under the cursor (loader only).
+     Uses the landing 3D board colors. --mx/--my are updated from JS. */
+  .loader-checker {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image:
+      linear-gradient(45deg, rgba(107, 66, 38, 0.32) 25%, transparent 25%),
+      linear-gradient(-45deg, rgba(107, 66, 38, 0.32) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, rgba(107, 66, 38, 0.32) 75%),
+      linear-gradient(-45deg, transparent 75%, rgba(107, 66, 38, 0.32) 75%);
+    background-size: 36px 36px;
+    background-position: 0 0, 0 18px, 18px -18px, -18px 0;
+    -webkit-mask-image: radial-gradient(circle 220px at var(--mx) var(--my),
+      rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, transparent 100%);
+    mask-image: radial-gradient(circle 220px at var(--mx) var(--my),
+      rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.75) 25%, transparent 100%);
+    transition: opacity 0.4s ease;
   }
   body.page-ready .page-loader {
     opacity: 0;
@@ -313,9 +338,12 @@
      enter in sequence with a brief overlap between adjacent icons. */
   .loading-icon-stack {
     position: relative;
+    z-index: 2;
     width: clamp(80px, 8vw, 112px);
     height: clamp(80px, 8vw, 112px);
   }
+  .loading-bar,
+  .loading-percent { position: relative; z-index: 2; }
   .loading-icon-stack img {
     position: absolute;
     inset: 0;
@@ -529,6 +557,7 @@
 <body>
 
 <div class="page-loader" id="page-loader" aria-hidden="true">
+  <div class="loader-checker" id="loader-checker"></div>
   <div class="loading-icon-stack">
     <img src="Chessbuds Icons/King Icon.png"   alt="">
     <img src="Chessbuds Icons/Queen Icon.png"  alt="">
@@ -574,6 +603,22 @@
 
 <!-- Footer (Privacy · Terms) is auto-injected by legal.js (loaded below). -->
 
+<script>
+  (() => {
+    const loader = document.getElementById('page-loader');
+    if (!loader) return;
+    let x = 0, y = 0, pending = false;
+    function tick() {
+      loader.style.setProperty('--mx', x + 'px');
+      loader.style.setProperty('--my', y + 'px');
+      pending = false;
+    }
+    window.addEventListener('pointermove', (e) => {
+      x = e.clientX; y = e.clientY;
+      if (!pending) { pending = true; requestAnimationFrame(tick); }
+    }, { passive: true });
+  })();
+</script>
 <script src="about.js"></script>
 <script src="legal.js"></script>
 
