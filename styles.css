@@ -25,6 +25,7 @@ body {
   color: var(--text);
   font-family: 'DM Sans', -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="%23B8842D" fill-opacity="0.88"/><rect x="6.5" y="6.5" width="11" height="11" rx="1" fill="none" stroke="%231F1810" stroke-opacity="0.35" stroke-width="0.6"/></svg>') 12 12, auto;
 }
 
 /* ── Top bar ── */
